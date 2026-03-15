@@ -87,12 +87,19 @@ class AXESystem:
                     console.print(Panel(f"Trouvé dans {path}", title="📍 Skill Result"))
 
     # --- VAULT (SECRETS) ---
-    def vset(self, name, secret=None):
-        """🔒 Stocke un secret dans le Keychain macOS : /vset [nom] [valeur]"""
+    def vset(self, *args):
+        """🔒 Stocke un secret : /vset [nom] [valeur]"""
         import keyring
-        val = secret or input(f"Valeur pour {name}: ")
-        keyring.set_password("AXE_SYSTEM", name, val)
-        console.print(f"✅ Secret {name} sécurisé.")
+        if len(args) < 1:
+            console.print("[red]Usage: /vset [nom] [valeur][/red]")
+            return
+            
+        name = args[0]
+        # Si la valeur n'est pas passée, on la demande (input caché)
+        secret = args[1] if len(args) > 1 else input(f"Entrez la valeur pour {name}: ")
+        
+        keyring.set_password("AXE_SYSTEM", name, secret)
+        console.print(f"✅ Secret [bold cyan]{name}[/bold cyan] sécurisé dans le Keychain.")
 
     def vget(self, name):
         """🔑 Récupère un secret du Keychain (Mémoire volatile)."""
