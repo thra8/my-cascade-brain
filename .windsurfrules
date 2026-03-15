@@ -15,6 +15,15 @@ shortcuts:
   /web: "Instruction: Recherche web, synthèse et ingestion auto."
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
+  /orchestrate: "Lancement d'un débat technique multi-experts."
+
+# 👥 AGENT ORCHESTRATION
+rules:
+  - if: "L'utilisateur utilise /orchestrate [sujet]"
+    then: 
+      1. "Générer 3 perspectives : Le Lead Dev (Perf), l'UX Lead (Accessibilité), le Security Officer (Failles)."
+      2. "Conclure par une recommandation d'architecture consolidée."
+      3. "Enregistrer le compte-rendu dans 'windsurf/memory/decisions/'."
 
 # 🧠 CASCADE ARCHITECT MODE
 rules:

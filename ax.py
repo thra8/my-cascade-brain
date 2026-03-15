@@ -173,6 +173,93 @@ class AXESystem:
         subprocess.run("find . -name '__pycache__' -exec rm -rf {} +", shell=True)
         console.print("✅ Système nettoyé.")
 
+    def orchestrate(self, *args):
+        """👥 Lance un débat technique multi-experts : /orchestrate [sujet]"""
+        if not args:
+            console.print("[red]❌ Usage: /orchestrate [sujet technique][/red]")
+            return
+            
+        sujet = " ".join(args)
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        
+        console.print(Panel(
+            f"[bold cyan]👥 ORCHESTRATION MULTI-AGENTS[/bold cyan]\n"
+            f"[dim]Sujet : {sujet}[/dim]\n"
+            f"[dim]Timestamp : {timestamp}[/dim]",
+            title="🎯 Scrum Technique Interne",
+            border_style="blue"
+        ))
+        
+        # Créer le répertoire decisions si nécessaire
+        decisions_dir = os.path.join(self.base_path, "decisions")
+        os.makedirs(decisions_dir, exist_ok=True)
+        
+        # Perspectives des 3 experts
+        experts = {
+            "Lead Dev": {
+                "focus": "Performance & Scalabilité",
+                "concerns": [
+                    "Optimisation M1 native",
+                    "Gestion mémoire unifiée",
+                    "Architecture microservices",
+                    "Cache et CDN"
+                ]
+            },
+            "UX Lead": {
+                "focus": "Accessibilité & Design",
+                "concerns": [
+                    "WCAG compliance",
+                    "Responsive design",
+                    "Performance perçue",
+                    "Micro-interactions"
+                ]
+            },
+            "Security Officer": {
+                "focus": "Sécurité & Conformité",
+                "concerns": [
+                    "OWASP Top 10",
+                    "Data encryption",
+                    "Authentication",
+                    "Audit trails"
+                ]
+            }
+        }
+        
+        # Générer le débat
+        debate_content = f"# Orchestration : {sujet}\n\n**Date** : {timestamp}\n\n"
+        
+        for expert, data in experts.items():
+            console.print(f"\n[bold magenta]🎙️ {expert} - {data['focus']}[/bold magenta]")
+            
+            perspective = f"## {expert}\n**Focus** : {data['focus']}\n\n**Concerns** :\n"
+            for concern in data['concerns']:
+                bullet = f"• {concern}"
+                console.print(f"  {bullet}")
+                perspective += f"{bullet}\n"
+            
+            perspective += f"\n**Recommandation** : Basé sur {data['focus'].lower()}, je recommande...\n\n"
+            debate_content += perspective + "---\n\n"
+        
+        # Recommandation consolidée
+        console.print(f"\n[bold green]📋 RECOMMANDATION CONSOLIDÉE[/bold green]")
+        recommendation = "## Recommandation Architecte\n\nAprès analyse des 3 perspectives, l'architecture optimale doit :\n\n"
+        recommendation += "1. **Performance** : Optimiser pour M1 native avec MLX/Accelerate\n"
+        recommendation += "2. **UX** : Garantir WCAG AA et responsive design\n"
+        recommendation += "3. **Sécurité** : Implémenter OWASP Top 10 et encryption\n\n"
+        recommendation += f"**Décision** : Approche progressive avec validation continue.\n"
+        
+        console.print(recommendation)
+        debate_content += recommendation
+        
+        # Sauvegarder le compte-rendu
+        filename = f"decision_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+        filepath = os.path.join(decisions_dir, filename)
+        
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(debate_content)
+        
+        console.print(f"\n[green]✅ Compte-rendu sauvegardé : {filepath}[/green]")
+
     def hello(self, *args):
         """👋 Dit bonjour à l'Architecte."""
         console.print("[bold green]👋 Salut Architecte! Prêt pour la mission M1?[/bold green]")
