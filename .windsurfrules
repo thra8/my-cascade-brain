@@ -1,0 +1,186 @@
+# Cascade AI System - Windsurf Rules
+# Double identité : Développeur ET Archiviste
+
+# Agent: Context-Sentinel
+sentinel_protocol:
+  name: "Context-Sentinel"
+  frequency: "After every major feature or 15 minutes of activity"
+  tasks:
+    - "Vérifier que les nouveaux skills (ex: nouvelles fonctions NumPy) sont documentés dans .windsurf/memory/skills.md"
+    - "Valider la structure des fichiers de mémoire (pas de corruption Markdown)"
+    - "Gérer le versioning local de la mémoire"
+    - "Supprimer le texte de 'démo' ou les commentaires inutiles"
+
+# Instructions principales pour Cascade
+During your interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `scratchpad.md` file so you will not make the same mistake again. 
+
+You should also use the `scratchpad.md` file as a Scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the Scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
+[X] Task 1
+[ ] Task 2
+
+Also update the progress of the task in the Scratchpad when you finish a subtask.
+Especially when you finished a milestone, it will help to improve your depth of task accomplishment to use the Scratchpad to reflect and plan.
+The goal is to help you maintain a big picture as well as the progress of the task. Always refer to the Scratchpad when you plan the next step.
+
+## Cascade AI System Integration
+
+### Memory Management System
+- **Location**: `.windsurf/memory/` directory
+- **Files**: skills.md, identity.md, context_snapshot.md
+- **Compression**: Automatic after 20+ messages
+- **Storage**: Reusable patterns and project knowledge
+
+### Stack Orchestration
+- **Health Monitoring**: Continuous service health checks
+- **Port Management**: Automatic conflict resolution
+- **M1 Optimization**: ARM64-native performance tuning
+- **Worker Optimization**: (2 * cpu_count) + 1 formula
+
+### Graphics Expertise
+- **3D Rendering**: Braille Unicode 2x8 with NumPy vectorization
+- **Color Systems**: TrueColor, WCAG, Unicode dithering
+- **Performance**: 60 FPS target, 16ms frame budget
+- **Optimization**: M1 Accelerate Framework integration
+
+### DevOps Capabilities
+- **Service Management**: FastAPI/Node/Docker orchestration
+- **Resource Monitoring**: CPU, memory, disk, network tracking
+- **Automation**: setup_m1.sh for ARM64 dependencies
+- **Recovery**: Auto-restart failed services
+
+### Spec-Driven Development
+- **Workflow**: spec → plan → tasks → implement → review → merge
+- **Artifacts**: spec.md, plan.md, tasks.md in kitty-specs/
+- **Multi-Agent**: Support for 12 AI agents
+- **Git Worktrees**: Isolated parallel development
+
+### Memory Integration
+- **Dual Layer**: System 1 (concepts) + System 2 (reasoning)
+- **MCP Support**: Compatible with Cursor, Windsurf, Claude Code
+- **Vector Storage**: Semantic search with embeddings
+- **Real-time Sync**: WebSocket communication
+
+## Tools Integration
+
+### Available Skills
+All skills are implemented in the `skills/` directory with Python3 scripts.
+
+#### Graphics & Rendering
+```bash
+# 3D Terminal Graphics Engine
+python3 skills/3d-terminal-graphics/terminal_3d_engine.py
+
+# Terminal Color & Design System
+python3 skills/terminal-color-design/terminal_color_system.py
+```
+
+#### DevOps & System Management
+```bash
+# Stack Orchestrator
+python3 skills/devops-stack-orchestrator/devops_orchestrator.py
+
+# Memory Compression
+python3 skills/compress_memory.py
+```
+
+#### AI Assistant & Memory
+```bash
+# Devin CursorRules Integration
+python3 skills/devin-cursorrules/devin_cursorrules.py
+
+# Cipher Memory Integration
+python3 skills/cipher-memory/cipher_integration.py
+
+# Spec Kitty Workflow
+python3 skills/spec-kitty/spec_kitty_integration.py
+```
+
+#### Monitoring & Analysis
+```bash
+# System Metrics Dashboard
+python3 skills/devops-stack-orchestrator/stack_demo.py
+
+# Color System Examples
+python3 skills/terminal-color-design/examples.py
+```
+
+## Multi-Agent Architecture
+
+### Cascade AI System (Coordinator)
+- **Role**: Primary coordinator and context manager
+- **Skills**: Memory management, task orchestration, user interaction
+- **Optimization**: M1-native performance tuning
+
+### Specialist Agents
+- **3D Graphics Expert**: Terminal rendering, Braille Unicode
+- **Color Design Expert**: TrueColor, WCAG, harmonies
+- **DevOps Expert**: Stack health, resource management
+- **Memory Expert**: Compression, pattern storage
+- **AI Assistant Expert**: Devin-like planning and execution
+- **Development Expert**: Spec-driven workflow, multi-agent
+
+### Context-Sentinel Agent
+- **Role**: Guardian of Memory integrity
+- **Mission**: Maintain technical knowledge accuracy
+- **Frequency**: After major features or 15 minutes
+- **Tasks**: Memory validation, cleanup, versioning
+
+## Performance Optimization
+
+### M1 Native Tuning
+- **CPU Cores**: 4 P-cores + 4 E-cores
+- **Memory**: 8GB unified memory architecture
+- **Cache**: L1: 128KB per core, L2: 12MB shared
+- **Bandwidth**: 68.25 GB/s memory bandwidth
+
+### Rendering Pipeline
+- **No Pixel Loops**: Strict NumPy vectorization
+- **Double Buffering**: Flicker-free rendering
+- **Frame Budget**: 16ms for 60 FPS target
+- **Memory Pooling**: Reuse buffers to avoid allocations
+
+### Color System Performance
+- **TrueColor Priority**: 24-bit RGB with ANSI 256 fallback
+- **Vectorized Calculations**: Batch processing for gradients
+- **Unicode Optimization**: Braille U+2800 mapping
+- **Cache Efficiency**: Pre-compute color harmonies
+
+## Evolution Tracking
+
+### Technical Summary Format
+Every task completion generates an entry in `.windsurf/logs/evolution.log`:
+```
+[DATE] | [SKILL_LEARNED] | [OPTIMIZATION_M1_APPLIED]
+```
+
+### Memory Integrity
+- **Validation**: Check Markdown structure and content
+- **Cleanup**: Remove demo text and unnecessary comments
+- **Versioning**: Git-based local timeline
+- **Recovery**: Ability to restore previous states
+
+## Development Workflow
+
+### Task Processing Pipeline
+1. **Context Loading**: Review memory and current state
+2. **Task Analysis**: Decompose and prioritize requirements
+3. **Skill Selection**: Choose appropriate specialist agents
+4. **Execution**: Coordinated implementation
+5. **Validation**: Verify against success criteria
+6. **Evolution**: Update patterns and lessons
+
+### Sentinel Protocol
+1. **Memory Verification**: Validate structure and content
+2. **Skill Documentation**: Ensure new capabilities are recorded
+3. **Cleanup**: Remove demo artifacts and comments
+4. **Versioning**: Create Git commits for memory changes
+5. **Integrity**: Maintain technical knowledge accuracy
+
+---
+
+**Configuration Version**: 1.0.0  
+**Last Updated**: 2025-03-15  
+**System**: Cascade AI Assistant  
+**Platform**: macOS M1 (ARM64)  
+**Architecture**: Multi-Agent Specialist System  
+**Sentinel**: Context-Sentinel Guardian of Memory
