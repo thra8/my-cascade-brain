@@ -34,11 +34,45 @@ class AXESystem:
             console.print("❌ Sync Error.")
 
     def audit(self, *args):
+        """🛡️ Audit de compatibilité native Apple Silicon (Deep Check)."""
         import platform
-        console.print(f"🛡️  Arch: [bold]{platform.machine()}[/bold] | Python: [green]{sys.version.split()[0]}[/green]")
-        for tool in ["brew", "node", "git"]:
+        arch = platform.machine()
+        is_native_os = arch == "arm64"
+        
+        console.print(Panel(
+            f"💻 OS Architecture: [bold green]{arch}[/bold green]\n"
+            f"🐍 Python Version: [bold green]{sys.version.split()[0]}[/bold green]",
+            title="🛡️ SYSTEM ARCH AUDIT", border_style="cyan"
+        ))
+
+        table = Table(box=None, header_style="bold magenta")
+        table.add_column("Outil", style="white")
+        table.add_column("Chemin", style="dim")
+        table.add_column("Architecture", justify="center")
+
+        tools = ["brew", "node", "git", "python3", "docker"]
+        for tool in tools:
             path = subprocess.getoutput(f"which {tool}")
-            console.print(f"✅ {tool}: {path}")
+            if "not found" in path or not path:
+                table.add_row(tool, "❌ Non installé", "[red]-[/red]")
+                continue
+            
+            # Extraction de l'architecture réelle du binaire
+            # La commande 'file' sur Mac renvoie 'Mach-O 64-bit executable arm64'
+            binary_info = subprocess.getoutput(f"file {os.path.realpath(path)}")
+            is_arm = "arm64" in binary_info
+            
+            status = "[green]Natif (arm64) ✅[/green]" if is_arm else "[bold red]Rosetta (x86_64) ⚠️[/bold red]"
+            table.add_row(tool, path, status)
+
+        console.print(table)
+        
+        # Check des processus Rosetta actifs
+        rosetta_count = subprocess.getoutput("ps aux | grep oahd | grep -v grep | wc -l").strip()
+        if int(rosetta_count) > 0:
+            console.print(f"\n[yellow]⚠️ Attention : Rosetta 2 est actif ({rosetta_count} processus).[/yellow]")
+        else:
+            console.print("\n[green]✨ Zéro processus Rosetta détecté. Environnement 100% pur M1.[/green]")
 
     def purge(self, *args):
         console.print("[bold red]🧹 Purge des caches...[/bold red]")
@@ -98,7 +132,7 @@ class AXESystem:
             ("/focus", "Cibler une stack", "Context"),
             ("/zip", "Flush & Snapshot", "Context"),
             ("/local", "Inférence M1 locale", "AI"),
-            ("/audit", "Check compat. arm64", "M1"),
+            ("/audit", "Vérification sincérité binaire (Native vs Rosetta)", "M1"),
             ("/purge", "Vider les caches", "Perf"),
             ("/panic", "Git Reset d'urgence", "Security")
         ]
