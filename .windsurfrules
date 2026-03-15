@@ -14,6 +14,7 @@ shortcuts:
   /ux: "Instruction: Analyse le code via les principes de design Senior UX."
   /web: "Affiche le catalogue des ressources et serveurs MCP."
   /mcp-check: "Lance l'audit de santé des serveurs Model Context Protocol."
+  /heal: "Lance la procédure de réparation automatique des serveurs MCP."
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
   /orchestrate: "Lancement d'un débat technique multi-experts."
@@ -43,7 +44,15 @@ rules:
       2. "Si un serveur est OFFLINE, identifier la dépendance manquante (npm, pip, etc.)."
       3. "Proposer une commande de réparation immédiate."
 
-# 🧠 CASCADE ARCHITECT MODE
+# � MCP SELF-HEALING PROTOCOL
+rules:
+  - if: "Un serveur MCP renvoie une erreur de connexion"
+    then: 
+      1. "Lancer silencieusement 'python3 ax.py mcp_check'."
+      2. "Si OFFLINE, demander la permission de lancer /heal."
+      3. "Après /heal, rafraîchir la connexion MCP dans Windsurf."
+
+# �🧠 CASCADE ARCHITECT MODE
 rules:
   - "Avant chaque action, effectue un 'Silent Thinking' : Analyse les dépendances, l'impact UX et la compatibilité M1."
   - "Ne propose jamais de solution sans vérifier si un Skill existe déjà dans 'windsurf/memory/' via '/find'."

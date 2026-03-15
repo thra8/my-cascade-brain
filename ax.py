@@ -618,6 +618,149 @@ psutil>=5.9.0
         except Exception as e:
             self._enhanced_display(f"❌ Erreur lors du diagnostic MCP : {e}", 'error')
 
+    def heal(self, *args):
+        """🩺 Tente de réparer les serveurs MCP défaillants (Self-Healing)."""
+        import json
+        
+        # Affichage avec micro-interactions
+        self._add_micro_interactions("Lancement de la procédure de réparation...", show_spinner=True)
+        
+        config_path = os.path.expanduser("~/Library/Application Support/Windsurf/mcp_config.json")
+        
+        if not os.path.exists(config_path):
+            config_path = os.path.expanduser("~/.config/windsurf/mcp_config.json")
+        
+        if not os.path.exists(config_path):
+            self._enhanced_display("❌ Fichier mcp_config.json introuvable", 'error')
+            return
+
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+
+            servers = config.get("mcpServers", {})
+            if not servers:
+                self._enhanced_display("📭 Aucun serveur MCP à réparer", 'warning')
+                return
+
+            table = Table(title="🩺 MCP SELF-HEALING", header_style="bold magenta")
+            table.add_column("Serveur", style="bold cyan")
+            table.add_column("Commande", style="white")
+            table.add_column("Action", style="yellow")
+            table.add_column("Résultat", justify="center")
+
+            repaired_count = 0
+            failed_count = 0
+
+            for name, data in servers.items():
+                cmd = data.get("command", "")
+                args_list = data.get("args", [])
+                
+                # Vérification de l'état actuel
+                binary_path = subprocess.getoutput(f"which {cmd}")
+                is_offline = not binary_path or ("not found" in binary_path)
+                
+                if is_offline:
+                    console.print(f"[bold red]🩹 Réparation de {name}...[/bold red]")
+                    
+                    # Stratégie de réparation selon le gestionnaire
+                    repair_action = ""
+                    success = False
+                    
+                    if cmd == "npx" or any("@modelcontextprotocol" in arg for arg in args_list):
+                        repair_action = "npm install -g npm@latest"
+                        try:
+                            result = subprocess.run(["npm", "install", "-g", "npm@latest"], 
+                                                capture_output=True, text=True, timeout=60)
+                            if result.returncode == 0:
+                                success = True
+                        except subprocess.TimeoutExpired:
+                            repair_action = "npm timeout"
+                        except Exception as e:
+                            repair_action = f"npm error: {str(e)[:30]}"
+                    
+                    elif cmd == "python3":
+                        repair_action = "brew install python@3.12"
+                        try:
+                            result = subprocess.run(["brew", "install", "python@3.12"], 
+                                                capture_output=True, text=True, timeout=120)
+                            if result.returncode == 0:
+                                success = True
+                        except subprocess.TimeoutExpired:
+                            repair_action = "brew timeout"
+                        except Exception as e:
+                            repair_action = f"brew error: {str(e)[:30]}"
+                    
+                    elif cmd == "docker":
+                        repair_action = "brew install docker"
+                        try:
+                            result = subprocess.run(["brew", "install", "docker"], 
+                                                capture_output=True, text=True, timeout=180)
+                            if result.returncode == 0:
+                                success = True
+                        except subprocess.TimeoutExpired:
+                            repair_action = "docker timeout"
+                        except Exception as e:
+                            repair_action = f"docker error: {str(e)[:30]}"
+                    
+                    else:
+                        # Commande générique
+                        repair_action = f"which {cmd}"
+                        try:
+                            result = subprocess.run(["which", cmd], 
+                                                capture_output=True, text=True, timeout=10)
+                            if result.returncode == 0:
+                                success = True
+                        except Exception:
+                            repair_action = f"install {cmd}"
+                    
+                    # Test de relance après réparation
+                    time.sleep(1)  # Pause pour laisser le système se stabiliser
+                    new_check = subprocess.getoutput(f"which {cmd}")
+                    
+                    if success and new_check and ("not found" not in new_check):
+                        result_status = "[green]✅ RÉPARÉ[/green]"
+                        repaired_count += 1
+                        self._enhanced_display(f"✅ {name} est de nouveau ONLINE", 'success')
+                    else:
+                        result_status = "[red]❌ ÉCHEC[/red]"
+                        failed_count += 1
+                        self._enhanced_display(f"❌ Échec de la réparation automatique pour {name}", 'error')
+                    
+                    table.add_row(name, cmd, repair_action, result_status)
+                else:
+                    table.add_row(name, cmd, "✅ Déjà ONLINE", "[green]OK[/green]")
+
+            console.print(table)
+            
+            # Statistiques de réparation
+            total_servers = len(servers)
+            success_rate = (repaired_count / total_servers) * 100 if total_servers > 0 else 0
+            
+            console.print(Panel(
+                f"[bold cyan]📊 Statistiques de Réparation[/bold cyan]\n"
+                f"Serveurs totaux : {total_servers}\n"
+                f"Réparés : [green]{repaired_count}[/green]\n"
+                f"Échecs : [red]{failed_count}[/red]\n"
+                f"Taux de succès : {success_rate:.1f}%",
+                title="🩺 Résultats du Self-Healing",
+                border_style="green" if success_rate > 80 else "yellow" if success_rate > 50 else "red"
+            ))
+            
+            # Recommandations post-réparation
+            if repaired_count > 0:
+                self._enhanced_display("🔄 Redémarre Windsurf pour appliquer les changements", 'info')
+                self._enhanced_display("📊 Lance /mcp_check pour vérifier l'état final", 'info')
+            
+            if failed_count > 0:
+                self._enhanced_display("⚠️ Certaines réparations nécessitent une intervention manuelle", 'warning')
+                self._enhanced_display("💡 Vérifie les messages d'erreur ci-dessus", 'info')
+            
+        except json.JSONDecodeError:
+            self._enhanced_display("❌ Erreur de lecture du fichier de configuration MCP", 'error')
+        except Exception as e:
+            self._enhanced_display(f"❌ Erreur lors de la réparation MCP : {e}", 'error')
+
     def web(self, *args):
         """🌐 Catalogue des serveurs MCP et Skills à télécharger."""
         # Affichage avec micro-interactions
