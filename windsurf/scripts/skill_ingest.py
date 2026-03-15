@@ -55,23 +55,44 @@ class SkillIngestor:
             return True
         return False
     
-    def clean_content(self, content: str) -> str:
-        """Nettoyer et formater le contenu"""
-        # Supprimer les patterns indésirables
-        for pattern, replacement in self.cleanup_patterns:
-            content = re.sub(pattern, replacement, content, flags=re.MULTILINE | re.DOTALL)
+    def clean_content(self, content):
+        if not content:
+            return ""
         
-        # Nettoyer les espaces multiples
-        content = re.sub(r' +', ' ', content)
-        content = re.sub(r'\n+', '\n', content)
+        # Liste des patterns de nettoyage (Vérifie qu'ils sont tous des STRINGS)
+        patterns = [
+            r'<[^>]*>',                # HTML tags
+            r'http[s]?://\S+',         # URLs
+            r'\[(.*?)\]\((.*?)\)',     # Markdown links
+            r'```[\w]*\n',            # Code blocks start
+            r'```',                    # Code blocks end
+            r'!\[.*?\]\(.*?\)',        # Images markdown
+            r'<.*?>',                  # HTML tags
+            r'#{1,6}\s*',              # Headers markdown
+            r'\*\*(.*?)\*\*', r'\1',   # Bold text
+            r'\*(.*?)\*', r'\1',        # Italic text
+            r'`([^`]+)`', r'\1',       # Inline code
+            r'\n\s*\n', '\n',          # Multiple newlines
+            r'^\s*[-*+]\s*', '',      # List items
+            r'^\s*\d+\.\s*', '',       # Numbered lists
+            r' +', ' ',                # Multiple spaces
+        ]
         
-        # Mettre en majuscule le début des phrases
-        content = '. '.join(sentence.capitalize() for sentence in content.split('. '))
-        
-        # Supprimer les lignes vides au début et à la fin
-        content = content.strip()
-        
-        return content
+        for pattern in patterns:
+            # Check de sécurité crucial pour éviter le TypeError
+            if pattern and isinstance(pattern, (str, bytes)):
+                try:
+                    # Si le pattern est un tuple (pattern, replacement)
+                    if isinstance(pattern, tuple) and len(pattern) == 2:
+                        content = re.sub(pattern[0], pattern[1], content, flags=re.MULTILINE | re.DOTALL)
+                    else:
+                        content = re.sub(pattern, '', content, flags=re.MULTILINE | re.DOTALL)
+                except Exception as e:
+                    print(f"⚠️ Erreur sur le pattern {pattern}: {e}")
+            else:
+                print(f"⚠️ Pattern invalide détecté (type {type(pattern)}), ignoré.")
+                
+        return content.strip()
     
     def format_content(self, content: str, source: str = "Unknown") -> str:
         """Formater le contenu selon les standards Architect"""
