@@ -4,6 +4,14 @@
 
 ---
 
+### 📥 INGESTION DE COMPÉTENCES (GITHUB/DOC)
+**Utilité :** Extraire et archiver des skills depuis une source externe.
+
+**Prompt Ingest :**
+> "Analyse ce contenu GitHub, extrais les patterns de code et les optimisations M1, et intègre-les dans ma mémoire via le protocole 'ingestion_rules'. Termine par une sauvegarde Sentinel."
+
+---
+
 ### 🧠 GESTION DE LA MÉMOIRE & SYNC
 **Utilité :** Charger les derniers skills depuis GitHub ou sauvegarder l'état actuel du cerveau.
 
