@@ -53,6 +53,15 @@ rules:
       2. "Si OFFLINE, demander la permission de lancer /heal."
       3. "Après /heal, rafraîchir la connexion MCP dans Windsurf."
 
+# 🗣️ SEMANTIC INTERPRETER
+rules:
+  - if: "L'utilisateur donne une instruction en langage non-technique"
+    then: 
+      1. "Consulter 'windsurf/memory/dictionary.md' pour mapper l'intention."
+      2. "Traduire en 3 points techniques (ex: Stack, Pattern, Optimisation)."
+      3. "En mode /autopilot, choisir l'interprétation la plus proche des standards 'Senior Architect'."
+      4. "Si l'ambiguïté est > 50%, proposer 2 options rapides via des boutons ou une liste courte."
+
 # ⚡ PROTOCOLE AUTOPILOTE (DANGER ZONE)
 rules:
   - if: "Le mode /autopilot est activé"

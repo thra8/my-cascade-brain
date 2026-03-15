@@ -898,6 +898,120 @@ psutil>=5.9.0
             # Fallback si le fichier n'est pas accessible
             console.print(f"[red]❌ Erreur de log autopilot : {e}[/red]")
 
+    def do(self, *args):
+        """🚀 Traduit une intention simple en exécution complexe : /do [votre idée]"""
+        if len(args) < 1:
+            self._enhanced_display("❌ Usage: /do [votre idée en langage naturel]", 'error')
+            self._enhanced_display("💡 Exemple: /do je veux une page de login stylée et sécurisée", 'info')
+            return
+        
+        idea = " ".join(args)
+        
+        console.print(Panel(
+            f"[bold magenta]🧠 Interprétation de l'idée :[/bold magenta] {idea}",
+            title="🚀 SEMANTIC MAPPER",
+            border_style="magenta"
+        ))
+        
+        # Lire le dictionnaire sémantique
+        dictionary_path = os.path.join(self.base_path, "dictionary.md")
+        if os.path.exists(dictionary_path):
+            with open(dictionary_path, "r", encoding="utf-8") as f:
+                dictionary_content = f.read()
+            
+            # Analyser l'idée et mapper les concepts
+            concepts_found = []
+            for line in dictionary_content.split('\n'):
+                if '->' in line and '"' in line:
+                    # Extraire les patterns du dictionnaire
+                    parts = line.split('->')
+                    if len(parts) >= 2:
+                        natural_part = parts[0].strip()
+                        # Vérifier si les mots-clés naturels sont dans l'idée
+                        keywords = [x.strip().lower().strip('"') for x in natural_part.split('/') if x.strip()]
+                        for keyword in keywords:
+                            if keyword in idea.lower():
+                                tech_part = parts[1].strip()
+                                concepts_found.append((natural_part, tech_part))
+            
+            if concepts_found:
+                console.print("\n[bold cyan]🔍 Concepts techniques identifiés :[/bold cyan]")
+                for natural, tech in concepts_found:
+                    console.print(f"  • {natural} → [green]{tech}[/green]")
+                
+                # Générer un plan d'action
+                console.print(f"\n[dim]⚡ Passage en mode Autopilote Intuitif...[/dim]")
+                
+                # Créer une commande technique basée sur les concepts
+                tech_stack = []
+                for _, tech in concepts_found:
+                    if "React" in tech or "Next.js" in tech:
+                        tech_stack.append("npx create-next-app")
+                    elif "TypeScript" in tech:
+                        tech_stack.append("npm install typescript")
+                    elif "Tailwind" in tech:
+                        tech_stack.append("npm install tailwindcss")
+                    elif "Security" in tech or "JWT" in tech:
+                        tech_stack.append("npm install jsonwebtoken bcrypt")
+                
+                if tech_stack:
+                    command = " && ".join(tech_stack)
+                    console.print(f"[dim]🎯 Commande technique générée : {command}[/dim]")
+                    
+                    # Lancer l'autopilot avec la commande interprétée
+                    console.print("[bold yellow]🚀 Lancement du mode Autopilote Intuitif...[/bold yellow]")
+                    self.autopilot(command)
+                else:
+                    console.print("[yellow]⚠️ Aucune commande technique générée - Veuillez clarifier votre demande[/yellow]")
+            else:
+                console.print("[yellow]⚠️ Aucun concept technique trouvé dans le dictionnaire[/yellow]")
+                console.print("[dim]💡 Le dictionnaire sera enrichi avec votre demande[/dim]")
+                
+                # Enrichir le dictionnaire avec cette nouvelle demande
+                self._enrich_dictionary(idea, dictionary_path)
+        else:
+            console.print("[red]❌ Dictionnaire sémantique introuvable[/red]")
+            console.print("[dim]💡 Création du dictionnaire de base...[/dim]")
+            self._create_basic_dictionary(dictionary_path)
+
+    def _enrich_dictionary(self, idea, dictionary_path):
+        """Enrichit le dictionnaire avec de nouvelles associations"""
+        try:
+            with open(dictionary_path, "a", encoding="utf-8") as f:
+                timestamp = datetime.date.today()
+                f.write(f"\n- \"{idea}\" -> [À définir par l'Architecte] ({timestamp})\n")
+            self._enhanced_display(f"📝 Demande ajoutée au dictionnaire pour enrichissement futur", 'info')
+        except Exception as e:
+            self._enhanced_display(f"❌ Erreur lors de l'enrichissement du dictionnaire : {e}", 'error')
+
+    def _create_basic_dictionary(self, dictionary_path):
+        """Crée un dictionnaire de base si inexistant"""
+        try:
+            os.makedirs(os.path.dirname(dictionary_path), exist_ok=True)
+            basic_content = """# 📖 DICTIONNAIRE D'INTENTION AXE
+
+## 🎨 Design & UX
+- "Stylé / moderne" -> Glassmorphism, flou de mouvement, coins arrondis
+- "Interactif / animé" -> Framer Motion, hover effects, transitions
+- "Propre / minimaliste" -> Atomic Design, espacement conséquent
+
+## ⚡ Performance
+- "Rapide / fluide" -> Optimisation NumPy, asynchronisme
+- "Léger / optimisé" -> Tree shaking, lazy loading
+
+## 🔒 Sécurité
+- "Sécurisé / safe" -> Keyring, Secret Shield, audit
+- "Authentification" -> 2FA, OAuth2, JWT
+
+---
+*Ce dictionnaire sera enrichi avec vos demandes*
+"""
+            with open(dictionary_path, "w", encoding="utf-8") as f:
+                f.write(basic_content)
+            self._enhanced_display("✅ Dictionnaire de base créé", 'success')
+        except Exception as e:
+            self._enhanced_display(f"❌ Erreur lors de la création du dictionnaire : {e}", 'error')
+
     def web(self, *args):
         """🌐 Catalogue des serveurs MCP et Skills à télécharger."""
         # Affichage avec micro-interactions

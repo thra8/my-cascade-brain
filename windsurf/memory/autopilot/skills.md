@@ -1,0 +1,3 @@
+
+### Règle Zero-Touch Autopilot (2026-03-15)
+Le protocole /autopilot permet à Cascade d'exécuter des commandes sans confirmation humaine. En mode activé, Cascade applique automatiquement les modifications, exécute les commandes nécessaires, tente 3 corrections automatiques en cas d'erreur, et fait des auto-commits Git. Le système inclut des protections : backup Git avant chaque session, timeout de 300s, logging complet dans windsurf/memory/autopilot/, et création de fichiers d'erreur pour analyse. Usage: /autopilot 'commande' - Exemple: /autopilot 'npm test'. Le mode est idéal pour les tâches répétitives comme les builds, tests, et déploiements automatisés.
