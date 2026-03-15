@@ -74,6 +74,40 @@ class AXESystem:
         else:
             console.print("\n[green]✨ Zéro processus Rosetta détecté. Environnement 100% pur M1.[/green]")
 
+    def fix_arch(self, *args):
+        """🩺 Tente de corriger les outils tournant sous Rosetta."""
+        console.print("[bold yellow]🚀 Analyse des binaires pour correction native...[/bold yellow]")
+        
+        tools_to_fix = []
+        for tool in ["brew", "node", "python3"]:
+            path = subprocess.getoutput(f"which {tool}")
+            if not path or "not found" in path: continue
+            
+            binary_info = subprocess.getoutput(f"file {os.path.realpath(path)}")
+            if "arm64" not in binary_info:
+                tools_to_fix.append((tool, path))
+
+        if not tools_to_fix:
+            console.print("[bold green]✨ Félicitations Architecte : Tout est déjà en natif arm64.[/bold green]")
+            return
+
+        for tool, path in tools_to_fix:
+            console.print(Panel(f"⚠️ [bold red]{tool}[/bold red] est en mode Rosetta ({path})", border_style="red"))
+            
+            if tool == "brew":
+                console.print("👉 [cyan]Solution :[/cyan] Installe Homebrew dans /opt/homebrew")
+                console.print("run: [dim]/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"[/dim]")
+            
+            elif tool == "node":
+                console.print("👉 [cyan]Solution :[/cyan] Utilise nvm ou fnm pour réinstaller la version arm64")
+                console.print("run: [dim]nvm install --lts --arch=arm64[/dim]")
+                
+            elif tool == "python3":
+                console.print("👉 [cyan]Solution :[/cyan] Rebuild avec pyenv")
+                console.print("run: [dim]arch -arm64 pyenv install 3.11.x[/dim]")
+
+        console.print("\n[bold yellow]Note :[/bold yellow] L'automatisation totale nécessite souvent un mot de passe sudo. Exécute les commandes ci-dessus manuellement pour garantir la sécurité de ton Mac.")
+
     def purge(self, *args):
         console.print("[bold red]🧹 Purge des caches...[/bold red]")
         subprocess.run("find . -name '__pycache__' -exec rm -rf {} +", shell=True)
@@ -111,7 +145,7 @@ class AXESystem:
         console.print(Panel(table, subtitle=f"Total: {total}"))
 
     def show_help(self, *args):
-        table = Table(title="🚀 AXE COMMAND CENTER v2.1", show_header=True, header_style="bold magenta")
+        table = Table(title="🚀 AXE COMMAND CENTER v2.2", show_header=True, header_style="bold magenta")
         table.add_column("Cmd", style="bold yellow")
         table.add_column("Description", style="white")
         table.add_column("Scope", style="dim")
@@ -133,6 +167,7 @@ class AXESystem:
             ("/zip", "Flush & Snapshot", "Context"),
             ("/local", "Inférence M1 locale", "AI"),
             ("/audit", "Vérification sincérité binaire (Native vs Rosetta)", "M1"),
+            ("/ra", "Chirurgie binaire : Force la migration Rosetta ➔ Native M1", "M1"),
             ("/purge", "Vider les caches", "Perf"),
             ("/panic", "Git Reset d'urgence", "Security")
         ]
@@ -145,7 +180,7 @@ if __name__ == "__main__":
     dispatcher = {
         "/h": axe.audit, "/f": axe.fix, "/s": axe.sync, "/dash": axe.dash,
         "/i": axe.ingest, "/find": axe.find, "/help": axe.show_help,
-        "/audit": axe.audit, "/purge": axe.purge
+        "/audit": axe.audit, "/purge": axe.purge, "/ra": axe.fix_arch, "/repair_arch": axe.fix_arch
     }
     cmd = sys.argv[1] if len(sys.argv) > 1 else "/help"
     if cmd in dispatcher: 
