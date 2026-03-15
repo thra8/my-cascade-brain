@@ -1,25 +1,25 @@
-# Cascade Architect Justfile
+# Cascade Architect Justfile - Python 3.12 Optimized
 # Commandes rapides pour le développement et la maintenance
 
 # Vérifier l'état de santé complet du système
 health:
-    python3 windsurf/scripts/check_system.py
+    source venv/bin/activate && python3 windsurf/scripts/check_system.py
 
 # Synchroniser la mémoire avec GitHub
 sync:
-    python3 windsurf/scripts/sentinel.py
+    source venv/bin/activate && python3 windsurf/scripts/sentinel.py
 
 # Lancer le dashboard de monitoring
 monitor:
-    python3 windsurf_monitor.py
+    source venv/bin/activate && python3 windsurf_monitor.py
 
 # Lancer le rendu GPU Metal
 gpu:
-    python3 metal_streamer.py
+    source venv/bin/activate && python3 metal_streamer.py
 
 # Démonstration des skills
 demo:
-    python3 skills/metal-gpu-rendering/metal_demo.py
+    source venv/bin/activate && python3 skills/metal-gpu-rendering/metal_demo.py
 
 # Nettoyer les fichiers temporaires
 cleanup:
@@ -29,24 +29,40 @@ cleanup:
 
 # Valider les fichiers de mémoire
 validate:
-    python3 windsurf/scripts/skill_ingest.py --validate
+    source venv/bin/activate && python3 windsurf/scripts/skill_ingest.py --validate
 
 # Lister les compétences récentes
 skills:
-    python3 windsurf/scripts/skill_ingest.py --list
+    source venv/bin/activate && python3 windsurf/scripts/skill_ingest.py --list
 
 # Configuration Git
 git-setup:
     git remote add origin https://github.com/thra8/my-cascade-brain.git
     git push -u origin main
 
-# Installation complète
+# Installation complète (Python 3.12)
 install:
-    ./setup_cascade_pro.sh
+    @echo "🐍 Installation Python 3.12..."
+    brew install python@3.12
+    @echo "📦 Création environnement virtuel..."
+    python3.12 -m venv venv
+    @echo "📦 Installation dépendances..."
+    source venv/bin/activate && pip install -r requirements.txt
+    @echo "✅ Installation terminée"
 
 # Test de performance terminal
 perf-test:
-    python3 -c "import numpy as np, time, sys; [sys.stdout.write(f'\x1b[38;2;{np.random.randint(0,255)};{np.random.randint(0,255)};{np.random.randint(0,255)}m{chr(np.random.randint(33,126))}') or sys.stdout.flush() or time.sleep(0.001) for _ in range(10000)]"
+    source venv/bin/activate && python3 -c "import numpy as np, time, sys; [sys.stdout.write(f'\x1b[38;2;{np.random.randint(0,255)};{np.random.randint(0,255)};{np.random.randint(0,255)}m{chr(np.random.randint(33,126))}') or sys.stdout.flush() or time.sleep(0.001) for _ in range(10000)]"
+
+# Test de performance Python 3.12
+benchmark:
+    @echo "🚀 Benchmark Python 3.12 Performance:"
+    @echo "NumPy:"
+    source venv/bin/activate && python3 -c "import numpy as np, time; t=time.time(); np.dot(np.random.rand(1000,1000), np.random.rand(1000,1000)); print(f'Temps: {time.time()-t:.3f}s')"
+    @echo "Regex:"
+    source venv/bin/activate && python3 -c "import re, time; t=time.time(); re.sub(r'<[^>]*>', '', '<html><body>Test</body></html>'*1000); print(f'Temps: {time.time()-t:.4f}s')"
+    @echo "Terminal:"
+    source venv/bin/activate && python3 -c "import time, sys; t=time.time(); [sys.stdout.write('.') or sys.stdout.flush() for _ in range(1000)]; print(f'\nTemps: {time.time()-t:.3f}s')"
 
 # Aide
 help:
@@ -60,8 +76,9 @@ help:
     @echo "  just validate    - Valider les fichiers de mémoire"
     @echo "  just skills      - Lister les compétences"
     @echo "  just git-setup   - Configurer Git"
-    @echo "  just install     - Installation complète"
+    @echo "  just install     - Installation complète Python 3.12"
     @echo "  just perf-test    - Test de performance terminal"
+    @echo "  just benchmark   - Benchmark Python 3.12"
     @echo "  just help        - Afficher cette aide"
 
 # Développement - Lancer tous les tests
@@ -69,7 +86,7 @@ test: health validate
     @echo "✅ Tests terminés"
 
 # Workflow complet - Installation, configuration, test
-setup: install git-sync health
+setup: install health
     @echo "🚀 Cascade Architect est prêt!"
 
 # Synchronisation Git
@@ -88,7 +105,9 @@ backup:
         *.py \
         *.sh \
         .gitignore \
-        justfile
+        justfile \
+        requirements.txt \
+        .python-version
     @echo "✅ Backup créé dans backups/"
 
 # Status du projet
@@ -96,7 +115,8 @@ status:
     @echo "📊 Statut du projet Cascade Architect:"
     @echo "==============================="
     @echo "📁 Répertoire: $(pwd)"
-    @echo "🔧 Git:"
+    @echo "� Python: $(source venv/bin/activate && python3 --version 2>/dev/null || echo 'Non activé')"
+    @echo "�🔧 Git:"
     @git status --porcelain
     @echo "📊 Fichiers de mémoire:"
     @ls -la windsurf/memory/
@@ -106,7 +126,7 @@ status:
 # Mise à jour des dépendances
 update:
     @echo "📦 Mise à jour des dépendances..."
-    python3 -m pip install --upgrade pyobjc-framework-Metal pyobjc-framework-Cocoa numpy psutil rich
+    source venv/bin/activate && pip install --upgrade numpy psutil rich textual pyobjc-framework-Metal pyobjc-framework-Cocoa
 
 # Vérification des permissions
 fix-perms:
@@ -117,12 +137,12 @@ fix-perms:
     @echo "✅ Permissions corrigées"
 
 # Diagnostic avancé
-full-diagnostic: health perf-test validate
+full-diagnostic: health perf-test validate benchmark
     @echo "🔍 Diagnostic complet terminé"
 
 # Mode développement
 dev:
-    @echo "🚀 Mode développement activé"
+    @echo "🚀 Mode développement activé (Python 3.12)"
     @echo "Terminal 1: just monitor"
     @echo "Terminal 2: just sync"
     @echo "Terminal 3: just gpu"
@@ -142,11 +162,11 @@ ingest-skill:
         echo "Usage: just ingest-skill 'contenu à ingérer'"; \
         exit 1; \
     fi
-    python3 windsurf/scripts/skill_ingest.py "$(ARGS)"
+    source venv/bin/activate && python3 windsurf/scripts/skill_ingest.py "$(ARGS)"
 
 # Test d'ingestion
 test-ingest:
-    python3 windsurf/scripts/skill_ingest.py "Test d'ingestion automatique - $(date)"
+    source venv/bin/activate && python3 windsurf/scripts/skill_ingest.py "Test d'ingestion Python 3.12 - $(date)"
 
 # Reset complet (dangerux)
 reset:
@@ -155,7 +175,7 @@ reset:
     @sleep 5
     git clean -fd
     git reset --hard HEAD
-    ./setup_cascade_pro.sh
+    just setup
     @echo "✅ Reset complet terminé"
 
 # Documentation
@@ -167,6 +187,7 @@ docs:
     @echo "🧠 Mémoire: windsurf/memory/"
     @echo "🛠️ Scripts: windsurf/scripts/"
     @echo "🌐 GitHub: https://github.com/thra8/my-cascade-brain"
+    @echo "🐍 Python: 3.12.13 (optimisé pour M1)"
 
 # Monitoring en continu
 watch:
@@ -178,13 +199,20 @@ watch:
         sleep 30; \
     done
 
-# Performance benchmark
-benchmark:
-    @echo "🏃 Benchmark de performance..."
-    @echo "NumPy:"
-    python3 -c "import numpy as np, time; t=time.time(); np.dot(np.random.rand(1000,1000), np.random.rand(1000,1000)); print(f'Temps: {time.time()-t:.3f}s')"
-    @echo "Terminal:"
-    python3 -c "import time, sys; t=time.time(); [sys.stdout.write('.') or sys.stdout.flush() for _ in range(1000)]; print(f'\nTemps: {time.time()-t:.3f}s')"
+# Performance benchmark complet
+full-benchmark:
+    @echo "🏃 Benchmark complet Python 3.12:"
+    @echo "================================="
+    @echo "🔍 Version Python:"
+    source venv/bin/activate && python3 --version
+    @echo "📊 NumPy Performance:"
+    source venv/bin/activate && python3 -c "import numpy as np, time; t=time.time(); result=np.dot(np.random.rand(1000,1000), np.random.rand(1000,1000)); print(f'Matrix multiplication (1000x1000): {time.time()-t:.3f}s')"
+    @echo "⚡ Regex Performance:"
+    source venv/bin/activate && python3 -c "import re, time; t=time.time(); re.sub(r'<[^>]*>', '', '<html><body>Test</body></html>'*1000); print(f'HTML tag removal (1000x): {time.time()-t:.4f}s')"
+    @echo "🖥️ Terminal Performance:"
+    source venv/bin/activate && python3 -c "import time, sys; t=time.time(); [sys.stdout.write('.') or sys.stdout.flush() for _ in range(1000)]; print(f'Terminal output (1000 chars): {time.time()-t:.3f}s')"
+    @echo "🎨 Color Performance:"
+    source venv/bin/activate && python3 -c "import time, sys; t=time.time(); [sys.stdout.write(f'\x1b[38;2;{i%255};{(i*2)%255};{(i*3)%255}m█\x1b[0m') or sys.stdout.flush() for i in range(1000)]; print(f'Color output (1000 chars): {time.time()-t:.3f}s')"
     @echo "✅ Benchmark terminé"
 
 # Vérification des signaux d'alerte
@@ -202,13 +230,18 @@ alerts:
     @echo "🔄 Git:"
     @if [ -z "$(git remote get-url origin 2>/dev/null)" ]; then echo "❌ Pas de remote Git"; fi
     @if [ -n "$(git status --porcelain)" ]; then echo "⚠️  Modifications non commitées"; fi
+    @echo "🐍 Environnement:"
+    @if [ ! -d venv ]; then echo "❌ venv non trouvé"; fi
+    @if [ ! -f requirements.txt ]; then echo "❌ requirements.txt manquant"; fi
     @echo "✅ Vérification terminée"
 
 # Mode sécurité
 security:
     @echo "🔒 Vérification de sécurité:"
     @echo "=========================="
-    @echo "🔑 Clés API:"
+    @echo "� Version Python:"
+    @if [ -f venv/bin/python ]; then echo "✅ $(venv/bin/python --version 2>/dev/null | head -1)"; else echo "❌ venv non trouvé"; fi
+    @echo "�🔑 Clés API:"
     @if [ -n "$OPENAI_API_KEY" ]; then echo "✅ OPENAI_API_KEY configurée"; else echo "⚠️  OPENAI_API_KEY non configurée"; fi
     @if [ -n "$ANTHROPIC_API_KEY" ]; then echo "✅ ANTHROPIC_API_KEY configurée"; else echo "⚠️  ANTHROPIC_API_KEY non configurée"; fi
     @echo "📁 Permissions:"
@@ -216,3 +249,10 @@ security:
     @echo "🔐 Git:"
     @git remote -v
     @echo "✅ Vérification sécurité terminée"
+
+# Activation de l'environnement
+activate:
+    @echo "🔗 Activation environnement virtuel Python 3.12..."
+    source venv/bin/activate && echo "✅ Environnement activé"
+    @echo "📦 Packages installés:"
+    source venv/bin/activate && pip list
