@@ -61,3 +61,28 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+
+# Exclure les gros fichiers de données IA
+*.bin
+*.pt
+*.onnx
+*.pkl
+*.h5
+*.pb
+*.caffemodel
+*.tflite
+
+# Cache IA et modèles
+.cache/
+models/
+checkpoints/
+wandb/
+.mlflow/
+
+# Fichiers de données volumineux
+data/
+datasets/
+*.csv
+*.json.gz
+*.parquets/_build/
+site/

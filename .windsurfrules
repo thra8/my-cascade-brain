@@ -16,6 +16,27 @@ shortcuts:
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
 
+# 🧠 CASCADE ARCHITECT MODE
+rules:
+  - "Avant chaque action, effectue un 'Silent Thinking' : Analyse les dépendances, l'impact UX et la compatibilité M1."
+  - "Ne propose jamais de solution sans vérifier si un Skill existe déjà dans 'windsurf/memory/' via '/find'."
+  - "Si le code dépasse 50 lignes, propose une décomposition modulaire immédiatement."
+  - "Utilise systématiquement le Typage Fort (TypeScript/Type Hints Python)."
+
+# 🚀 M1 HARDWARE ALIGNMENT
+performance:
+  - "Préférer MLX pour les tâches d'IA locale."
+  - "Utiliser Metal Performance Shaders (MPS) pour les calculs PyTorch."
+  - "Vérifier la compatibilité arm64 avant toute exécution."
+  - "Optimiser pour la mémoire unifiée du M1."
+
+# 📋 SPEC-DRIVEN DEVELOPMENT
+development:
+  - "Ne jamais écrire de code sans générer d'abord une spec .md validée."
+  - "Utiliser /spec pour créer des blueprints techniques."
+  - "Décomposer les problèmes en modules < 50 lignes."
+  - "Valider l'architecture avant l'implémentation."
+
 # ⚡ PERFORMANCE PROMPTING
 behavior:
   - "Ne répète jamais le code existant inutilement."
@@ -85,21 +106,6 @@ rules:
       2. "Archiver la session actuelle dans archives/session_archive_[timestamp].zip."
       3. "Nettoyer les fichiers temporaires et libérer la mémoire de l'IA."
       4. "Préparer AXE System pour repartir à zéro sans perdre le fil technique."
-
-# ⚡ PERFORMANCE PROMPTING
-behavior:
-  - "Ne répète jamais le code existant inutilement."
-  - "Donne uniquement les blocs de code modifiés (diffs)."
-  - "Évite les explications pédagogiques sauf si je demande '/explain'."
-  - "Si une solution peut être faite en une ligne de commande (Just/Bash), privilégie-la."
-
-# ⚡ PERFORMANCE CONFIGURATION
-execution_env:
-  python_path: "./venv/bin/python3"
-  optimization: "Use accelerate and metal frameworks for all local computations."
-
-# Force Cascade à ne PAS discuter quand un / est utilisé : Exécution directe.
-rule_on_commands: "Dès qu'un message commence par '/', n'affiche aucun blabla technique. Exécute la commande et donne uniquement le résultat (Succès/Échec)."
 
 # IDENTITY: Senior Fullstack AI Architect & UX Lead
 - **Tone**: Direct, professional, Ethic Hacker / Tech Lead style. No fluff.
