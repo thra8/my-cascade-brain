@@ -1,17 +1,35 @@
-# ⚡ AXE SYSTEM COMMANDS
+# ⚡ AXE FULL DISPATCHER
 shortcuts:
-  /f: "python3 ax.py fix"    # Répare tout
-  /s: "python3 ax.py sync"   # Sauvegarde GitHub
-  /h: "python3 ax.py health" # Santé du système
-  /i: "python3 ax.py ingest" # Ingestion : /i [Cat] [Titre] [Content]
-  /git: "python3 ax.py git"   # Clone et analyse dépôt GitHub
-  /dash: "python3 ax.py dash" # Tableau de bord temps réel
-  /zip: "python3 ax.py zip"   # Nettoyage contexte et archive
-  /find: "python3 ax.py find" # Recherche rapide dans les skills.md
-  /audit: "python3 ax.py audit" # Audit compatibilité M1 native
-  /new: "python3 ax.py new"   # Scaffolding projet AXE-ready
-  /ux: "python3 ax.py ux"     # Audit UX/UI du projet
-  /commit: "python3 ax.py commit" # Commit sémantique architecte
+  /h: "python3 ax.py /h"
+  /f: "python3 ax.py /f"
+  /s: "python3 ax.py /s"
+  /dash: "python3 ax.py /dash"
+  /i: "python3 ax.py /i"
+  /find: "python3 ax.py /find"
+  /help: "python3 ax.py /help"
+  /audit: "python3 ax.py /audit"
+  /purge: "python3 ax.py /purge"
+  /new: "Instruction: Crée un projet AXE-Ready (venv, rules, gitignore)."
+  /spec: "Instruction: Rédige une spécification technique avant de coder."
+  /ux: "Instruction: Analyse le code via les principes de design Senior UX."
+  /web: "Instruction: Recherche web, synthèse et ingestion auto."
+  /focus: "Instruction: Limite ton contexte aux dossiers concernés."
+  /zip: "Instruction: Résume la session et propose un reset de contexte."
+
+# ⚡ PERFORMANCE PROMPTING
+behavior:
+  - "Ne répète jamais le code existant inutilement."
+  - "Donne uniquement les blocs de code modifiés (diffs)."
+  - "Évite les explications pédagogiques sauf si je demande '/explain'."
+  - "Si une solution peut être faite en une ligne de commande (Just/Bash), privilégie-la."
+
+# ⚡ PERFORMANCE CONFIGURATION
+execution_env:
+  python_path: "./venv/bin/python3"
+  optimization: "Use accelerate and metal frameworks for all local computations."
+
+# Force Cascade à ne PAS discuter quand un / est utilisé : Exécution directe.
+rule_on_commands: "Dès qu'un message commence par '/', n'affiche aucun blabla technique. Exécute la commande et donne uniquement le résultat (Succès/Échec)."
 
 # 🛠️ PROTOCOLE D'ANALYSE GIT
 rules:
