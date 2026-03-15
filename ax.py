@@ -16,34 +16,85 @@ class Architect:
     
     def __init__(self):
         self.base_path = "windsurf/memory"
-        self.dirs = ["ai", "ui", "m1", "backend", "scripts", ".windsurf/logs"]
-        self.libs = ["numpy", "textual", "psutil", "rich", "pyobjc-framework-Metal", "pyobjc-framework-Cocoa"]
-        self.project_root = Path.cwd()
-        
-    # --- REPAIR & HEALTH ---
+        self.libs = ["numpy", "textual", "psutil", "rich"]
+
     def repair(self):
-        """Repair infrastructure and dependencies"""
-        print("🛠️  Repairing infrastructure...")
-        
-        # Create essential directories
-        for d in self.dirs:
-            dir_path = Path(d)
-            if "memory" in str(d):
-                dir_path = Path("windsurf/memory") / d.replace("windsurf/memory/", "")
-            dir_path.mkdir(parents=True, exist_ok=True)
-            print(f"✅ Directory: {dir_path}")
-        
-        # Install essential libraries
+        print("🛠️  Réparation de l'infrastructure...")
+        os.makedirs(self.base_path, exist_ok=True)
         try:
-            print("📦 Installing libraries...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install"] + self.libs)
-            print("✅ Libraries installed")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Pip error: {e}")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q"] + self.libs)
+            print("✅ Environnement M1 stabilisé.")
+        except: 
+            print("❌ Erreur de dépendances.")
+
+    def find(self, query):
+        """Recherche intelligente dans tous les fichiers skills.md"""
+        print(f"� Recherche de : '{query}'...")
+        matches = []
         
-        # Create essential files
-        self._create_essential_files()
-        print("✅ Repair completed")
+        for root, _, files in os.walk(self.base_path):
+            if "skills.md" in files:
+                path = os.path.join(root, "skills.md")
+                rel_path = os.path.relpath(root, self.base_path).upper()
+                
+                with open(path, "r", encoding="utf-8") as f:
+                    # On découpe par skill (séparateur ###)
+                    skills = f.read().split("### ")
+                    for skill in skills:
+                        if query.lower() in skill.lower():
+                            matches.append((rel_path, skill.strip()))
+
+        if not matches:
+            print("❌ Aucun skill trouvé pour cette recherche.")
+            return
+
+        print(f"✅ {len(matches)} résultat(s) trouvé(s):")
+        for i, (cat, content) in enumerate(matches[:5], 1): # Limite à 5 résultats
+            lines = content.split('\n')
+            title = lines[0] if lines else "Sans titre"
+            print(f"\n--- Résultat {i} ({cat}) ---")
+            print(f"📋 {title}")
+            # Affiche les 3 premières lignes du contenu
+            content_lines = [line.strip() for line in lines[1:4] if line.strip()]
+            if content_lines:
+                for line in content_lines:
+                    print(f"   {line}")
+            print("   ...")
+
+    def dashboard(self):
+        total_skills, categories = 0, {}
+        for root, _, files in os.walk(self.base_path):
+            if "skills.md" in files:
+                rel_path = os.path.relpath(root, self.base_path).upper()
+                with open(os.path.join(root, "skills.md"), "r", encoding="utf-8") as f:
+                    count = len([line for line in f if line.strip().startswith("### ")])
+                    categories[rel_path] = count
+                    total_skills += count
+
+        print("🧠 AXE DASHBOARD")
+        print("=" * 40)
+        for cat, count in categories.items():
+            print(f"📁 {cat}: {count} skills")
+        print("-" * 40)
+        print(f"🔥 TOTAL: {total_skills} skills")
+
+    def ingest(self, cat, title, content):
+        target_dir = os.path.join(self.base_path, cat.lower())
+        os.makedirs(target_dir, exist_ok=True)
+        file_path = os.path.join(target_dir, "skills.md")
+        with open(file_path, "a", encoding="utf-8") as f:
+            f.write(f"\n### {title} ({datetime.date.today()})\n{content.strip()}\n")
+        print(f"✅ Skill '{title}' intégré dans {cat}.")
+
+    def sync(self):
+        print("💾 Synchronisation Sentinel...")
+        try:
+            subprocess.run(["git", "add", "."], check=True)
+            subprocess.run(["git", "commit", "-m", f"🧠 Memory Update: {datetime.datetime.now()}"], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("✅ Cloud GitHub à jour.")
+        except: 
+            print("⚠️ Erreur Git.")
     
     def health(self):
         """System health check"""
@@ -1220,62 +1271,17 @@ typing-extensions>=4.15.0
 def main():
     """Main entry point"""
     ax = Architect()
-    
-    if len(sys.argv) < 2:
-        ax.help()
-        return
-    
-    cmd = sys.argv[1].lower()
-    
-    if cmd == "fix":
-        ax.repair()
-    elif cmd == "health":
-        ax.health()
-    elif cmd == "sync":
-        ax.sync()
-    elif cmd == "clean":
-        ax.clean()
-    elif cmd == "monitor":
-        ax.monitor()
-    elif cmd == "help":
-        ax.help()
-    elif cmd == "git":
-        if len(sys.argv) < 3:
-            print("❌ Usage: python3 ax.py git [GitHub URL]")
-            return
-        url = sys.argv[2]
-        target_path, analysis = ax.git_clone(url)
-        if target_path and analysis:
-            print(f"\n📊 Analyse complète:")
-            print(f"📁 Type: {analysis['type']}")
-            print(f"📦 Dépendances: {len(analysis['dependencies'])}")
-            print(f"🍎 M1 Compatible: {'✅' if analysis['m1_compatible'] else '❌'}")
-            if analysis.get('compatibility_issues'):
-                print("⚠️ Issues de compatibilité:")
-                for issue in analysis['compatibility_issues']:
-                    print(f"   • {issue}")
-            print(f"📜 Script: {analysis['installation_script']}")
-            print(f"🔗 Points d'intégration: {len(analysis['integration_points'])}")
-            print(f"\n🚀 Prochaines étapes:")
-            print(f"   cd lab/{analysis['name']}")
-            print(f"   ./install_agent.sh")
-            for point in analysis['integration_points'][:3]:
-                print(f"   • Ingestérer: {point}")
-    elif cmd == "dash":
-        ax.dashboard()
-    elif cmd == "zip":
-        ax.zip_context()
-    elif cmd == "ingest":
-        if len(sys.argv) < 5:
-            print("❌ Usage: python3 ax.py ingest [category] [title] [content]")
-            return
-        cat = sys.argv[2]
-        title = sys.argv[3]
-        content = " ".join(sys.argv[4:])
-        ax.ingest(cat, title, content)
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
+    if cmd in ["fix", "/f"]: ax.repair()
+    elif cmd in ["sync", "/s"]: ax.sync()
+    elif cmd in ["dash", "/dash"]: ax.dashboard()
+    elif cmd in ["find", "/find"]:
+        if len(sys.argv) > 2: ax.find(" ".join(sys.argv[2:]))
+        else: print("❌ Usage: /find [mot-clé]")
+    elif cmd in ["ingest", "/i"]:
+        if len(sys.argv) >= 5: ax.ingest(sys.argv[2], sys.argv[3], " ".join(sys.argv[4:]))
     else:
-        print(f"❌ Unknown command: {cmd}")
-        ax.help()
+        print("Usage: python3 ax.py [fix|sync|dash|ingest|find]")
 
 
 if __name__ == "__main__":

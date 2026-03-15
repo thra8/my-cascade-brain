@@ -7,6 +7,7 @@ shortcuts:
   /git: "python3 ax.py git"   # Clone et analyse dépôt GitHub
   /dash: "python3 ax.py dash" # Tableau de bord temps réel
   /zip: "python3 ax.py zip"   # Nettoyage contexte et archive
+  /find: "python3 ax.py find" # Recherche rapide dans les skills.md
 
 # 🛠️ PROTOCOLE D'ANALYSE GIT
 rules:
