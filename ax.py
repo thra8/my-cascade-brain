@@ -519,6 +519,55 @@ psutil>=5.9.0
         console.print(f"   ├── package.json (Next.js)")
         console.print(f"   └── venv/ (Environnement Python)")
 
+    def web(self, *args):
+        """🌐 Catalogue des serveurs MCP et Skills à télécharger."""
+        # Affichage avec micro-interactions
+        self._add_micro_interactions("Chargement du marketplace...", show_spinner=True)
+        
+        table = Table(title="🌐 AXE WEB MARKETPLACE (MCP & SKILLS)", header_style="bold cyan")
+        table.add_column("Type", style="dim")
+        table.add_column("Nom / Source", style="bold yellow")
+        table.add_column("Commande / URL", style="white")
+        table.add_column("Utilité", style="green")
+
+        # --- SERVEURS MCP (Model Context Protocol) ---
+        table.add_row("MCP", "Sequential Thinking", "npx -y @modelcontextprotocol/server-sequential-thinking", "Résolution de problèmes complexes")
+        table.add_row("MCP", "GitHub", "npx -y @modelcontextprotocol/server-github", "Gestion repo, PR & Issues via Cascade")
+        table.add_row("MCP", "PostgreSQL", "npx -y @modelcontextprotocol/server-postgres", "Requêtes DB en langage naturel")
+        table.add_row("MCP", "Google Search", "npx -y @modelcontextprotocol/server-google-search", "Recherche web en temps réel")
+        table.add_row("MCP", "Docker", "npx -y @modelcontextprotocol/server-docker", "Contrôle des containers via l'IA")
+        table.add_row("MCP", "Memory", "npx -y @modelcontextprotocol/server-memory", "Base de données persistante")
+        table.add_row("MCP", "Brave Search", "npx -y @modelcontextprotocol/server-brave-search", "Recherche web privée")
+        table.add_row("MCP", "Filesystem", "npx -y @modelcontextprotocol/server-filesystem", "Manipulation fichiers avancée")
+
+        # --- SOURCES DE SKILLS ---
+        table.add_row("HUB", "Smithery.ai", "https://smithery.ai", "Le 'App Store' des serveurs MCP")
+        table.add_row("REPO", "Awesome MCP", "github.com/punkpeye/awesome-mcp", "Liste ultime des ressources MCP")
+        table.add_row("REPO", "Claude Skills", "github.com/anthropic/claude-code-skills", "Compétences officielles Anthropic")
+        table.add_row("REPO", "MCP Servers", "github.com/modelcontextprotocol/servers", "Serveurs officiels MCP")
+        table.add_row("REPO", "Community MCP", "github.com/MCPers", "Projets communautaires MCP")
+
+        # --- OUTILS COMPLÉMENTAIRES ---
+        table.add_row("TOOL", "FastMCP", "github.com/jlowin/fastmcp", "Framework rapide pour créer des serveurs MCP")
+        table.add_row("TOOL", "MCP Inspector", "npm install -g @modelcontextprotocol/inspector", "Debugger pour serveurs MCP")
+        table.add_row("TOOL", "Claude Desktop", "claude.ai/download", "Client desktop avec support MCP")
+
+        console.print(table)
+        
+        # Instructions d'installation
+        console.print(Panel(
+            "[bold cyan]💡 Installation MCP[/bold cyan]\n"
+            "1. Ouvre les Paramètres (Cmd + ,)\n"
+            "2. Cascade > MCP Servers > Add Server\n"
+            "3. Configure avec les commandes ci-dessus\n\n"
+            "[bold yellow]🔍 Sélectionne un outil pour l'installation automatisée[/bold yellow]",
+            title="🚀 Guide d'Installation",
+            border_style="green"
+        ))
+        
+        # Statistiques du marketplace
+        self._enhanced_display(f"📊 {8} Serveurs MCP | {5} Sources Skills | {3} Outils", 'info')
+
     def hello(self, *args):
         """👋 Dit bonjour à l'Architecte."""
         console.print("[bold green]👋 Salut Architecte! Prêt pour la mission M1?[/bold green]")

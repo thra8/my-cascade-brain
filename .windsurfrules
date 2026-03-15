@@ -12,7 +12,7 @@ shortcuts:
   /new: "Instruction: Crée un projet AXE-Ready (venv, rules, gitignore)."
   /spec: "Instruction: Rédige une spécification technique avant de coder."
   /ux: "Instruction: Analyse le code via les principes de design Senior UX."
-  /web: "Instruction: Recherche web, synthèse et ingestion auto."
+  /web: "Affiche le catalogue des ressources et serveurs MCP."
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
   /orchestrate: "Lancement d'un débat technique multi-experts."
@@ -24,6 +24,15 @@ rules:
       1. "Générer 3 perspectives : Le Lead Dev (Perf), l'UX Lead (Accessibilité), le Security Officer (Failles)."
       2. "Conclure par une recommandation d'architecture consolidée."
       3. "Enregistrer le compte-rendu dans 'windsurf/memory/decisions/'."
+
+# 🌐 WEB DISCOVERY & INSTALL
+rules:
+  - if: "L'utilisateur sélectionne un outil de /web"
+    then: 
+      1. "Rechercher la documentation officielle du serveur MCP."
+      2. "Vérifier les pré-requis (Node.js, Docker, API Keys)."
+      3. "Proposer de générer le bloc JSON de configuration pour Windsurf."
+      4. "Si c'est un SKILL.md, l'ingérer via 'ax /i [cat] [nom] [content]'."
 
 # 🧠 CASCADE ARCHITECT MODE
 rules:
