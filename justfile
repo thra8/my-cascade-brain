@@ -40,6 +40,10 @@ git-setup:
     git remote add origin https://github.com/thra8/my-cascade-brain.git
     git push -u origin main
 
+# Réparation système
+fix:
+    source venv/bin/activate && python3 windsurf/scripts/self_repair.py
+
 # Installation complète (Python 3.12)
 install:
     @echo "🐍 Installation Python 3.12..."
