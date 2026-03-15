@@ -86,6 +86,59 @@ class Architect:
             f.write(f"\n### {title} ({datetime.date.today()})\n{content.strip()}\n")
         print(f"✅ Skill '{title}' intégré dans {cat}.")
 
+    def audit(self, *args):
+        """🔍 Audit de compatibilité native Apple Silicon."""
+        print("🛡️ ARCH AUDIT - M1 NATIVE CHECK")
+        print("=" * 45)
+        
+        # 1. Check Python Arch
+        import platform
+        arch = platform.machine()
+        status = "✅ NATIVE (arm64)" if arch == "arm64" else "⚠️ ROSETTA (x86_64)"
+        print(f"🐍 Python Arch: {status}")
+        
+        # 2. Check Binaries critiques
+        tools = ["brew", "node", "git", "docker"]
+        print("\n🔧 Binaries critiques:")
+        for tool in tools:
+            try:
+                path = subprocess.getoutput(f"which {tool}")
+                file_info = subprocess.getoutput(f"file {path}")
+                is_native = "arm64" in file_info
+                icon = "✅" if is_native else "⚠️"
+                print(f"{icon} {tool.capitalize()}: {'arm64' if is_native else 'x86_64 (Rosetta)'}")
+            except:
+                print(f"❌ {tool.capitalize()}: Non trouvé")
+        
+        # 3. Check numpy/Accelerate
+        try:
+            import numpy as np
+            print(f"\n📊 NumPy: ✅ Installé")
+            # Test si numpy utilise Accelerate
+            test_array = np.random.rand(1000, 1000)
+            start_time = datetime.datetime.now()
+            result = np.dot(test_array, test_array)
+            end_time = datetime.datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            print(f"⚡ Performance test: {duration:.4f}s (1000x1000 matrix)")
+        except ImportError:
+            print(f"\n📊 NumPy: ❌ Non installé")
+        
+        # 4. Check MLX
+        try:
+            import mlx
+            print(f"🧠 MLX: ✅ Installé (Apple ML framework)")
+        except ImportError:
+            print(f"🧠 MLX: ⚠️ Non installé (pip install mlx)")
+        
+        # 5. Check Docker platform
+        docker_platform = os.environ.get("DOCKER_DEFAULT_PLATFORM", "non défini")
+        print(f"\n🐳 Docker Platform: {docker_platform}")
+        if docker_platform != "linux/arm64":
+            print("💡 Recommandation: export DOCKER_DEFAULT_PLATFORM=linux/arm64")
+        
+        print(f"\n🎯 Audit terminé - Vérifie les ⚠️ ci-dessus")
+
     def sync(self):
         print("💾 Synchronisation Sentinel...")
         try:
@@ -1278,10 +1331,11 @@ def main():
     elif cmd in ["find", "/find"]:
         if len(sys.argv) > 2: ax.find(" ".join(sys.argv[2:]))
         else: print("❌ Usage: /find [mot-clé]")
+    elif cmd in ["audit", "/audit"]: ax.audit()
     elif cmd in ["ingest", "/i"]:
         if len(sys.argv) >= 5: ax.ingest(sys.argv[2], sys.argv[3], " ".join(sys.argv[4:]))
     else:
-        print("Usage: python3 ax.py [fix|sync|dash|ingest|find]")
+        print("Usage: python3 ax.py [fix|sync|dash|ingest|find|audit]")
 
 
 if __name__ == "__main__":
