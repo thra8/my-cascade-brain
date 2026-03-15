@@ -9,6 +9,8 @@ shortcuts:
   /zip: "python3 ax.py zip"   # Nettoyage contexte et archive
   /find: "python3 ax.py find" # Recherche rapide dans les skills.md
   /audit: "python3 ax.py audit" # Audit compatibilité M1 native
+  /new: "python3 ax.py new"   # Scaffolding projet AXE-ready
+  /ux: "python3 ax.py ux"     # Audit UX/UI du projet
 
 # 🛠️ PROTOCOLE D'ANALYSE GIT
 rules:
@@ -18,6 +20,24 @@ rules:
       2. "Analyser le README.md et les fichiers de config du dépôt cloné."
       3. "Générer un script d'installation 'install_agent.sh' spécifique au projet."
       4. "Proposer une intégration dans l'architecture AXE existante."
+
+# 🎨 PROTOCOLE UX/UI AUDIT
+rules:
+  - if: "L'utilisateur utilise /ux"
+    then: 
+      1. "Vérifier le contraste des couleurs (WCAG)."
+      2. "Analyser la réactivité des composants (Tailwind breakpoints)."
+      3. "Calculer le score de complexité visuelle."
+      4. "Proposer des micro-interactions pour améliorer le 'Feel'."
+
+# 🏗️ PROTOCOLE SCAFFOLDING
+rules:
+  - if: "L'utilisateur utilise /new [nom]"
+    then: 
+      1. "Créer la structure de projet AXE-ready."
+      2. "Générer .windsurfrules optimisé."
+      3. "Configurer environnement virtuel M1."
+      4. "Créer fichiers de configuration (gitignore, requirements, package.json)."
 
 # 📊 PROTOCOLE D'OBSERVABILITÉ
 rules:

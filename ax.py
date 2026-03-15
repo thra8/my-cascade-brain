@@ -86,6 +86,163 @@ class Architect:
             f.write(f"\n### {title} ({datetime.date.today()})\n{content.strip()}\n")
         print(f"✅ Skill '{title}' intégré dans {cat}.")
 
+    def new_project(self, name):
+        """🚀 Déploie un nouveau projet optimisé AXE."""
+        print(f"🏗️  Scaffolding du projet : {name}...")
+        
+        # Création du répertoire
+        os.makedirs(name, exist_ok=True)
+        
+        # Copie des règles AXE
+        with open(f"{name}/.windsurfrules", "w") as f:
+            f.write("""# AXE Project Rules
+personality: 'Senior Architect'
+optimization: 'M1 Native'
+framework: 'FastAPI/Next.js'
+""")
+        
+        # Création du .gitignore optimisé
+        with open(f"{name}/.gitignore", "w") as f:
+            f.write("""# AXE Optimized .gitignore
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+dist/
+build/
+.DS_Store
+""")
+        
+        # Création du requirements.txt M1 optimisé
+        with open(f"{name}/requirements.txt", "w") as f:
+            f.write("""# M1 Optimized Dependencies
+numpy>=2.0.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.5.0
+""")
+        
+        # Création du venv M1
+        subprocess.run([sys.executable, "-m", "venv", f"{name}/venv"], check=True)
+        
+        # Création du package.json si projet Next.js
+        with open(f"{name}/package.json", "w") as f:
+            f.write("""{
+  "name": \"""" + name + """",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "tailwindcss": "^3.0.0"
+  }
+}
+""")
+        
+        print(f"✅ Projet {name} prêt. Utilise 'cd {name} && /f' pour finaliser.")
+        print(f"📁 Structure créée:")
+        print(f"   ├── .windsurfrules (Règles AXE)")
+        print(f"   ├── .gitignore (Optimisé M1)")
+        print(f"   ├── requirements.txt (Dépendances M1)")
+        print(f"   ├── package.json (Next.js)")
+        print(f"   └── venv/ (Environnement Python)")
+
+    def ux_audit(self, path="."):
+        """🎨 Audit UX/UI du projet"""
+        print("🎨 UX/UI AUDIT - AXE DESIGN SYSTEM")
+        print("=" * 45)
+        
+        # Scores
+        scores = {
+            "accessibility": 0,
+            "performance": 0,
+            "usability": 0
+        }
+        
+        # 1. Vérification de l'accessibilité (WCAG)
+        print("\n🔍 ACCESSIBILITÉ (WCAG):")
+        try:
+            # Chercher les fichiers React/HTML
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if file.endswith(('.tsx', '.jsx', '.html')):
+                        file_path = os.path.join(root, file)
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                            # Vérifier les attributs aria
+                            aria_count = content.count('aria-')
+                            alt_count = content.count('alt=')
+                            if aria_count > 0 or alt_count > 0:
+                                scores["accessibility"] += min(30, aria_count * 5 + alt_count * 10)
+                                print(f"   ✅ {file}: {aria_count} aria, {alt_count} alt")
+        except:
+            print("   ⚠️ Erreur analyse accessibilité")
+        
+        # 2. Performance (Tailwind breakpoints)
+        print("\n⚡ PERFORMANCE:")
+        try:
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if file.endswith(('.css', '.tsx', '.jsx')):
+                        file_path = os.path.join(root, file)
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                            # Vérifier les breakpoints Tailwind
+                            breakpoints = ['sm:', 'md:', 'lg:', 'xl:']
+                            bp_count = sum(content.count(bp) for bp in breakpoints)
+                            if bp_count > 0:
+                                scores["performance"] += min(40, bp_count * 8)
+                                print(f"   ✅ {file}: {bp_count} breakpoints")
+        except:
+            print("   ⚠️ Erreur analyse performance")
+        
+        # 3. Usabilité (Structure et patterns)
+        print("\n🎯 USABILITÉ:")
+        try:
+            component_count = 0
+            for root, _, files in os.walk(path):
+                for file in files:
+                    if file.endswith(('.tsx', '.jsx')):
+                        file_path = os.path.join(root, file)
+                        with open(file_path, 'r') as f:
+                            content = f.read()
+                            # Vérifier les hooks React
+                            hooks = ['useState', 'useEffect', 'useCallback']
+                            hook_count = sum(content.count(hook) for hook in hooks)
+                            if hook_count > 0:
+                                component_count += 1
+                                scores["usability"] += min(30, hook_count * 6)
+            if component_count > 0:
+                print(f"   ✅ {component_count} composants analysés")
+        except:
+            print("   ⚠️ Erreur analyse usabilité")
+        
+        # Calcul du score Q_ux
+        total_score = scores["accessibility"] + scores["performance"] + scores["usability"]
+        qux = total_score / 3
+        
+        print(f"\n📊 SCORE UX QUALITÉ (Q_ux): {qux:.1f}/100")
+        print(f"   🎨 Accessibilité: {scores['accessibility']}/100")
+        print(f"   ⚡ Performance: {scores['performance']}/100")
+        print(f"   🎯 Usabilité: {scores['usability']}/100")
+        
+        # Recommandations
+        if qux < 50:
+            print("\n💡 RECOMMANDATIONS:")
+            if scores["accessibility"] < 30:
+                print("   • Ajouter des attributs aria et alt pour l'accessibilité")
+            if scores["performance"] < 40:
+                print("   • Optimiser les breakpoints Tailwind pour la réactivité")
+            if scores["usability"] < 30:
+                print("   • Utiliser plus de hooks React pour l'interactivité")
+        
+        print(f"\n🎯 Audit terminé - Score Q_ux: {qux:.1f}")
+
     def audit(self, *args):
         """🔍 Audit de compatibilité native Apple Silicon."""
         print("🛡️ ARCH AUDIT - M1 NATIVE CHECK")
@@ -1332,10 +1489,16 @@ def main():
         if len(sys.argv) > 2: ax.find(" ".join(sys.argv[2:]))
         else: print("❌ Usage: /find [mot-clé]")
     elif cmd in ["audit", "/audit"]: ax.audit()
+    elif cmd in ["new", "/new"]:
+        if len(sys.argv) > 2: ax.new_project(sys.argv[2])
+        else: print("❌ Usage: /new [project-name]")
+    elif cmd in ["ux", "/ux"]:
+        path = sys.argv[2] if len(sys.argv) > 2 else "."
+        ax.ux_audit(path)
     elif cmd in ["ingest", "/i"]:
         if len(sys.argv) >= 5: ax.ingest(sys.argv[2], sys.argv[3], " ".join(sys.argv[4:]))
     else:
-        print("Usage: python3 ax.py [fix|sync|dash|ingest|find|audit]")
+        print("Usage: python3 ax.py [fix|sync|dash|ingest|find|audit|new|ux]")
 
 
 if __name__ == "__main__":
