@@ -898,6 +898,138 @@ psutil>=5.9.0
             # Fallback si le fichier n'est pas accessible
             console.print(f"[red]❌ Erreur de log autopilot : {e}[/red]")
 
+    def _generate_visual_help(self, idea, possible_interpretations):
+        """Génère une aide visuelle quand Cascade a un doute d'interprétation"""
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich.columns import Columns
+        
+        console.print("\n[bold yellow]🤔 Cascade a un doute sur votre intention. Aide visuelle :[/bold yellow]\n")
+        
+        # Créer un tableau comparatif des interprétations
+        table = Table(title="🎯 OPTIONS D'INTERPRÉTATION", show_header=True, header_style="bold cyan")
+        table.add_column("Option", style="bold magenta", justify="center")
+        table.add_column("Interprétation", style="white")
+        table.add_column("Stack Technique", style="green")
+        table.add_column("Complexité", justify="center")
+        table.add_column("Action", style="yellow", justify="center")
+        
+        for i, interpretation in enumerate(possible_interpretations, 1):
+            option_num = f"[bold cyan]{i}[/bold cyan]"
+            
+            # Simuler différentes interprétations possibles
+            if "stylé" in idea.lower() or "moderne" in idea.lower():
+                interpretations = [
+                    ("Design moderne", "Next.js + Tailwind + Glassmorphism", "Moyenne", "🎨"),
+                    ("UI/UX avancé", "React + Framer Motion + Animations", "Élevée", "⚡"),
+                    ("Minimaliste", "HTML5 + CSS3 pur", "Faible", "🎯")
+                ]
+            elif "sécurisé" in idea.lower() or "safe" in idea.lower():
+                interpretations = [
+                    ("Sécurité standard", "JWT + bcrypt + HTTPS", "Moyenne", "🔒"),
+                    ("Sécurité renforcée", "2FA + OAuth2 + Vault", "Élevée", "🛡️"),
+                    ("Sécurité maximale", "Hardware keys + Zero Trust", "Très élevée", "🔐")
+                ]
+            elif "rapide" in idea.lower() or "fluide" in idea.lower():
+                interpretations = [
+                    ("Performance web", "Optimisation + Cache CDN", "Moyenne", "⚡"),
+                    ("Performance native", "Rust/WASM + MLX", "Élevée", "🚀"),
+                    ("Performance extrême", "Go + Kubernetes", "Très élevée", "⚡")
+                ]
+            else:
+                # Interprétations génériques basées sur les mots-clés
+                interpretations = [
+                    ("Approche standard", "React + Node.js + PostgreSQL", "Moyenne", "📦"),
+                    ("Approche moderne", "Next.js + TypeScript + Prisma", "Élevée", "🚀"),
+                    ("Approche minimaliste", "Vanilla JS + SQLite", "Faible", "🎯")
+                ]
+            
+            # Utiliser la première interprétation par défaut
+            interp = interpretations[0] if interpretations else ("Standard", "React + Node.js", "Moyenne", "📦")
+            
+            # Créer des boutons visuels pour choix
+            action_button = f"[bold green]Choisir {i}[/bold green]"
+            
+            table.add_row(option_num, interp[0], interp[1], interp[2], action_button)
+        
+        console.print(table)
+        
+        # Créer un panneau de guidance
+        guidance = Panel(
+            "[bold cyan]💡 Comment choisir :[/bold cyan]\n"
+            "1. [bold magenta]1[/bold magenta] - Design moderne avec animations fluides\n"
+            "2. [bold magenta]2[/bold magenta] - UI/UX avancé avec micro-interactions\n"
+            "3. [bold magenta]3[/bold magenta] - Approche minimaliste et rapide\n\n"
+            "[dim]Tapez le numéro de votre choix ou laissez Cascade décider[/dim]",
+            title="🎯 GUIDE DE SÉLECTION",
+            border_style="blue"
+        )
+        console.print(guidance)
+        
+        # Attendre le choix de l'utilisateur
+        try:
+            choice = input("\n👆 Votre choix (1-3) ou Entrée pour automatique : ").strip()
+            
+            if choice and choice.isdigit() and 1 <= int(choice) <= len(interpretations):
+                selected = interpretations[int(choice) - 1]
+                console.print(f"\n[green]✅ Option {choice} sélectionnée : {selected[0]}[/green]")
+                return selected
+            else:
+                # Choix automatique basé sur les préférences Senior Architect
+                best_choice = interpretations[1] if len(interpretations) > 1 else interpretations[0]
+                console.print(f"\n[dim]🤖 Choix automatique (Senior Architect) : {best_choice[0]}[/dim]")
+                return best_choice
+                
+        except KeyboardInterrupt:
+            console.print("\n[yellow]⚠️ Annulation - Utilisation de l'interprétation par défaut[/yellow]")
+            return interpretations[0] if interpretations else ("Standard", "React + Node.js", "Moyenne", "📦")
+
+    def _generate_schema_diagram(self, idea):
+        """Génère un schéma ASCII pour visualiser l'architecture"""
+        console.print("\n[bold cyan]🏗️ SCHÉMA D'ARCHITECTURE PROPOSÉ[/bold cyan]\n")
+        
+        # Schéma ASCII simple
+        schema = """
+┌─────────────────────────────────────────────────────────┐
+│                    🎨 FRONTEND                        │
+├─────────────────────────────────────────────────────────┤
+│  React Components                                    │
+│  ├── Login Form (Glassmorphism)                     │
+│  ├── Auth State Management                          │
+│  └── Responsive Design                               │
+└─────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────┐
+│                   🔒 BACKEND API                        │
+├─────────────────────────────────────────────────────────┤
+│  Node.js + Express                                   │
+│  ├── JWT Authentication                             │
+│  ├── User Management                                 │
+│  └── Security Middleware                             │
+└─────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────┐
+│                  🗄️ DATABASE                           │
+├─────────────────────────────────────────────────────────┤
+│  PostgreSQL + Redis                                   │
+│  ├── User Data (Encrypted)                           │
+│  ├── Session Tokens                                   │
+│  └── Audit Logs                                       │
+└─────────────────────────────────────────────────────────┘
+        """
+        
+        console.print(schema)
+        
+        # Légende
+        legend = """
+🎨 Frontend : Interface utilisateur avec design moderne
+🔒 Backend : API sécurisée avec authentification JWT
+🗄️ Database : Stockage chiffré des données utilisateur
+        """
+        console.print(Panel(legend, title="📋 LÉGENDE", border_style="dim"))
+
     def do(self, *args):
         """🚀 Traduit une intention simple en exécution complexe : /do [votre idée]"""
         if len(args) < 1:
@@ -921,6 +1053,8 @@ psutil>=5.9.0
             
             # Analyser l'idée et mapper les concepts
             concepts_found = []
+            ambiguous_concepts = []
+            
             for line in dictionary_content.split('\n'):
                 if '->' in line and '"' in line:
                     # Extraire les patterns du dictionnaire
@@ -929,22 +1063,44 @@ psutil>=5.9.0
                         natural_part = parts[0].strip()
                         # Vérifier si les mots-clés naturels sont dans l'idée
                         keywords = [x.strip().lower().strip('"') for x in natural_part.split('/') if x.strip()]
-                        for keyword in keywords:
-                            if keyword in idea.lower():
-                                tech_part = parts[1].strip()
-                                concepts_found.append((natural_part, tech_part))
+                        
+                        # Calculer le score de correspondance
+                        match_score = sum(1 for keyword in keywords if keyword in idea.lower())
+                        
+                        if match_score > 0:
+                            tech_part = parts[1].strip()
+                            confidence = match_score / len(keywords)
+                            
+                            if confidence >= 0.7:  # Haute confiance
+                                concepts_found.append((natural_part, tech_part, confidence))
+                            elif confidence >= 0.3:  # Ambiguïté moyenne
+                                ambiguous_concepts.append((natural_part, tech_part, confidence))
+            
+            if len(concepts_found) == 0 and len(ambiguous_concepts) > 0:
+                # Cascade a un doute - générer l'aide visuelle
+                console.print("[yellow]⚠️ Cascade détecte une ambiguïté dans votre demande[/yellow]")
+                
+                # Générer le tableau comparatif visuel
+                selected_interpretation = self._generate_visual_help(idea, ambiguous_concepts)
+                
+                # Générer le schéma d'architecture
+                self._generate_schema_diagram(idea)
+                
+                # Utiliser l'interprétation sélectionnée
+                concepts_found.append((selected_interpretation[0], selected_interpretation[1], 1.0))
             
             if concepts_found:
                 console.print("\n[bold cyan]🔍 Concepts techniques identifiés :[/bold cyan]")
-                for natural, tech in concepts_found:
-                    console.print(f"  • {natural} → [green]{tech}[/green]")
+                for natural, tech, confidence in concepts_found:
+                    confidence_indicator = "🟢" if confidence >= 0.7 else "🟡" if confidence >= 0.5 else "🔴"
+                    console.print(f"  • {natural} ({confidence:.1f}) → [green]{tech}[/green] {confidence_indicator}")
                 
                 # Générer un plan d'action
                 console.print(f"\n[dim]⚡ Passage en mode Autopilote Intuitif...[/dim]")
                 
                 # Créer une commande technique basée sur les concepts
                 tech_stack = []
-                for _, tech in concepts_found:
+                for _, tech, confidence in concepts_found:
                     if "React" in tech or "Next.js" in tech:
                         tech_stack.append("npx create-next-app")
                     elif "TypeScript" in tech:
@@ -953,6 +1109,10 @@ psutil>=5.9.0
                         tech_stack.append("npm install tailwindcss")
                     elif "Security" in tech or "JWT" in tech:
                         tech_stack.append("npm install jsonwebtoken bcrypt")
+                    elif "Glassmorphism" in tech:
+                        tech_stack.append("npm install framer-motion")
+                    elif "PostgreSQL" in tech:
+                        tech_stack.append("npm install prisma @prisma/client")
                 
                 if tech_stack:
                     command = " && ".join(tech_stack)
