@@ -29,6 +29,14 @@ ingest category title content:
 git url:
     python3 ax.py git {{url}}
 
+# Tableau de bord temps réel
+dash:
+    python3 ax.py dash
+
+# Nettoyage contexte et archive
+zip:
+    python3 ax.py zip
+
 # Aide
 help:
     python3 ax.py help

@@ -5,6 +5,8 @@ shortcuts:
   /h: "python3 ax.py health" # Santé du système
   /i: "python3 ax.py ingest" # Ingestion : /i [Cat] [Titre] [Content]
   /git: "python3 ax.py git"   # Clone et analyse dépôt GitHub
+  /dash: "python3 ax.py dash" # Tableau de bord temps réel
+  /zip: "python3 ax.py zip"   # Nettoyage contexte et archive
 
 # 🛠️ PROTOCOLE D'ANALYSE GIT
 rules:
@@ -14,6 +16,24 @@ rules:
       2. "Analyser le README.md et les fichiers de config du dépôt cloné."
       3. "Générer un script d'installation 'install_agent.sh' spécifique au projet."
       4. "Proposer une intégration dans l'architecture AXE existante."
+
+# 📊 PROTOCOLE D'OBSERVABILITÉ
+rules:
+  - if: "L'utilisateur utilise /dash"
+    then: 
+      1. "Exécuter 'python3 ax.py dash'."
+      2. "Afficher le tableau de bord en temps réel avec santé M1 et cerveau Cloud."
+      3. "Montrer les compteurs de skills, performance et indicateurs de santé."
+      4. "Proposer des recommandations basées sur l'état actuel."
+
+# 🗜️ PROTOCOLE DE PERFORMANCE
+rules:
+  - if: "L'utilisateur utilise /zip"
+    then: 
+      1. "Exécuter 'python3 ax.py zip'."
+      2. "Archiver la session actuelle dans archives/session_archive_[timestamp].zip."
+      3. "Nettoyer les fichiers temporaires et libérer la mémoire de l'IA."
+      4. "Préparer AXE System pour repartir à zéro sans perdre le fil technique."
 
 # Force Cascade à ne PAS discuter quand un / est utilisé : Exécution directe.
 rule_on_commands: "Dès qu'un message commence par '/', n'affiche aucun blabla technique. Exécute la commande et donne uniquement le résultat (Succès/Échec)."

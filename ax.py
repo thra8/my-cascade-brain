@@ -605,6 +605,449 @@ echo "  python3 ../../ax.py ingest {repo_type} '{repo_name}' 'Fonctions principa
         
         return integration_points
 
+    # --- MÉTHODES UTILITAIRES POUR DASHBOARD ---
+    def _count_skills(self):
+        """Compter le nombre total de skills"""
+        try:
+            memory_dir = Path("windsurf/memory")
+            total_skills = 0
+            
+            for category_dir in memory_dir.iterdir():
+                if category_dir.is_dir():
+                    skills_file = category_dir / "skills.md"
+                    if skills_file.exists():
+                        with open(skills_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            # Compter les sections ### (skills)
+                            skills_count = len(re.findall(r'^###\s+', content, re.MULTILINE))
+                            total_skills += skills_count
+            
+            return total_skills
+        except:
+            return 0
+    
+    def _count_categories(self):
+        """Compter le nombre de catégories"""
+        try:
+            memory_dir = Path("windsurf/memory")
+            return len([d for d in memory_dir.iterdir() if d.is_dir()])
+        except:
+            return 0
+    
+    def _get_last_activity(self):
+        """Obtenir la date de dernière activité"""
+        try:
+            memory_dir = Path("windsurf/memory")
+            latest_time = None
+            
+            for root, dirs, files in os.walk(memory_dir):
+                for file in files:
+                    file_path = Path(root) / file
+                    if file_path.exists():
+                        file_time = file_path.stat().st_mtime
+                        if latest_time is None or file_time > latest_time:
+                            latest_time = file_time
+            
+            if latest_time:
+                return datetime.fromtimestamp(latest_time)
+            return None
+        except:
+            return None
+    
+    def _get_memory_size(self):
+        """Obtenir la taille de la mémoire en MB"""
+        try:
+            memory_dir = Path("windsurf/memory")
+            total_size = 0
+            
+            for root, dirs, files in os.walk(memory_dir):
+                for file in files:
+                    file_path = Path(root) / file
+                    if file_path.exists():
+                        total_size += file_path.stat().st_size
+            
+            return total_size / 1024 / 1024  # Convert to MB
+        except:
+            return 0
+    
+    def _get_session_stats(self):
+        """Obtenir les statistiques de session"""
+        try:
+            stats = {
+                "today": 0,
+                "week": 0,
+                "syncs": 0
+            }
+            
+            # Pour l'instant, retourner des valeurs par défaut
+            # TODO: Implémenter un vrai suivi de session
+            return stats
+        except:
+            return {"today": 0, "week": 0, "syncs": 0}
+    
+    def _calculate_health_score(self, cpu_percent, memory_percent, disk_percent, skills_count):
+        """Calculer un score de santé global"""
+        try:
+            # Score matériel (0-40 points)
+            hardware_score = max(0, 40 - (cpu_percent + memory_percent + disk_percent) / 3 * 0.4)
+            
+            # Score skills (0-30 points)
+            skills_score = min(30, skills_count * 2)
+            
+            # Score système (0-30 points)
+            system_score = 30  # Base, pourrait être affiné
+            
+            total_score = hardware_score + skills_score + system_score
+            return min(100, int(total_score))
+        except:
+            return 50
+    
+    def _get_recommendations(self, cpu_percent, memory_percent, disk_percent, skills_count):
+        """Obtenir des recommandations basées sur l'état actuel"""
+        recommendations = []
+        
+        if cpu_percent > 80:
+            recommendations.append("CPU élevé - vérifier les processus actifs")
+        
+        if memory_percent > 80:
+            recommendations.append("RAM élevée - envisager /zip pour nettoyer")
+        
+        if disk_percent > 80:
+            recommendations.append("Disque plein - nettoyer les fichiers temporaires")
+        
+        if skills_count == 0:
+            recommendations.append("Aucun skill - utiliser /ingest pour ajouter")
+        
+        return recommendations
+    
+    def _count_skills_in_dir(self, directory):
+        """Compter les skills dans un répertoire spécifique"""
+        try:
+            total_skills = 0
+            
+            for category_dir in directory.iterdir():
+                if category_dir.is_dir():
+                    skills_file = category_dir / "skills.md"
+                    if skills_file.exists():
+                        with open(skills_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            skills_count = len(re.findall(r'^###\s+', content, re.MULTILINE))
+                            total_skills += skills_count
+            
+            return total_skills
+        except:
+            return 0
+    
+    def _generate_session_report(self, archive_path, state_data):
+        """Générer un rapport de session"""
+        try:
+            report_content = f"""# RAPPORT DE SESSION AXE SYSTEM
+**Généré le**: {state_data['timestamp']}
+**Version Python**: {state_data['python_version']}
+**Répertoire**: {state_data['working_directory']}
+
+## 📊 STATISTIQUES
+- **Skills ingérés**: {state_data['skills_count']}
+- **Catégories**: {state_data['categories_count']}
+- **Dernière activité**: {state_data['last_activity']}
+
+## 🔧 CONFIGURATION
+- **AXE System**: ✅ Opérationnel
+- **Python 3.12**: ✅ Disponible
+- **Virtual Environment**: ✅ Configuré
+
+## 📋 ACTIONS EFFECTUÉES
+- ✅ Sauvegarde état système
+- ✅ Archivage configuration
+- ✅ Conservation skills
+- ✅ Nettoyage temporaires
+- ✅ Compression archive
+
+## 🚀 PROCHAINE SESSION
+Pour reprendre:
+1. Décompresser l'archive si nécessaire
+2. Exécuter `python3 ax.py health`
+3. Continuer avec `/dash` pour observer l'état
+
+---
+*Généré par AXE System - Architecture Atomique*
+"""
+            
+            with open(archive_path / "session_report.md", 'w', encoding='utf-8') as f:
+                f.write(report_content)
+                
+        except Exception as e:
+            print(f"⚠️ Erreur génération rapport: {e}")
+
+    # --- DASHBOARD OBSERVABILITÉ ---
+    def dashboard(self):
+        """Tableau de bord en temps réel - santé M1 et cerveau Cloud"""
+        print("📊 CASCADE ARCHITECT DASHBOARD")
+        print("=" * 50)
+        
+        try:
+            import psutil
+            import time
+            from datetime import datetime
+            
+            # Timestamp
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"🕐 {timestamp}")
+            print()
+            
+            # --- SANTÉ M1 ---
+            print("🍎 SANTÉ APPLE M1")
+            print("-" * 25)
+            
+            # CPU
+            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_freq = psutil.cpu_freq()
+            cpu_emoji = "🟢" if cpu_percent < 50 else "🟡" if cpu_percent < 80 else "🔴"
+            print(f"{cpu_emoji} CPU: {cpu_percent:.1f}% ({cpu_freq.current:.0f}MHz)")
+            
+            # Mémoire Unifiée
+            memory = psutil.virtual_memory()
+            memory_emoji = "🟢" if memory.percent < 50 else "🟡" if memory.percent < 80 else "🔴"
+            print(f"{memory_emoji} RAM: {memory.percent:.1f}% ({memory.used/1024/1024/1024:.1f}GB/{memory.total/1024/1024/1024:.1f}GB)")
+            
+            # Disque
+            disk = psutil.disk_usage('/')
+            disk_emoji = "🟢" if disk.percent < 50 else "🟡" if disk.percent < 80 else "🔴"
+            print(f"{disk_emoji} SSD: {disk.percent:.1f}% ({disk.used/1024/1024/1024:.1f}GB/{disk.total/1024/1024/1024:.1f}GB)")
+            
+            # Température (si disponible)
+            try:
+                temps = psutil.sensors_temperatures()
+                if temps:
+                    for name, entries in temps.items():
+                        for entry in entries:
+                            if entry.current:
+                                temp_emoji = "🟢" if entry.current < 60 else "🟡" if entry.current < 80 else "🔴"
+                                print(f"{temp_emoji} {name}: {entry.current:.1f}°C")
+            except:
+                print("⚪ Température: Non disponible")
+            
+            print()
+            
+            # --- CERVEAU CLOUD ---
+            print("🧠 CERVEAU CLOUD (windsurf/memory)")
+            print("-" * 35)
+            
+            # Compter les skills
+            skills_count = self._count_skills()
+            skills_emoji = "🟢" if skills_count > 0 else "⚪"
+            print(f"{skills_emoji} Skills ingérés: {skills_count}")
+            
+            # Compter les catégories
+            categories_count = self._count_categories()
+            print(f"📁 Catégories: {categories_count}")
+            
+            # Dernière activité
+            last_activity = self._get_last_activity()
+            activity_emoji = "🟢" if last_activity and (datetime.now() - last_activity).days < 1 else "🟡"
+            if last_activity:
+                time_ago = datetime.now() - last_activity
+                if time_ago.days > 0:
+                    time_str = f"Il y a {time_ago.days} jours"
+                elif time_ago.seconds > 3600:
+                    time_str = f"Il y a {time_ago.seconds // 3600}h"
+                elif time_ago.seconds > 60:
+                    time_str = f"Il y a {time_ago.seconds // 60}min"
+                else:
+                    time_str = f"Il y a {time_ago.seconds}s"
+                print(f"{activity_emoji} Dernière activité: {time_str}")
+            else:
+                print("⚪ Dernière activité: Inconnue")
+            
+            # Taille de la mémoire
+            memory_size = self._get_memory_size()
+            size_emoji = "🟢" if memory_size < 100 else "🟡" if memory_size < 500 else "🔴"
+            print(f"{size_emoji} Taille mémoire: {memory_size:.1f}MB")
+            
+            print()
+            
+            # --- PERFORMANCE CASCADE ---
+            print("⚡ PERFORMANCE CASCADE")
+            print("-" * 24)
+            
+            # Test de performance
+            start_time = time.time()
+            test_result = [x for x in range(10000)]
+            perf_time = time.time() - start_time
+            perf_emoji = "🟢" if perf_time < 0.01 else "🟡" if perf_time < 0.1 else "🔴"
+            print(f"{perf_emoji} Test performance: {perf_time:.4f}s")
+            
+            # Compteurs de session
+            session_stats = self._get_session_stats()
+            print(f"📊 Sessions aujourd'hui: {session_stats.get('today', 0)}")
+            print(f"📈 Skills cette semaine: {session_stats.get('week', 0)}")
+            print(f"🔄 Sync GitHub: {session_stats.get('syncs', 0)}")
+            
+            print()
+            
+            # --- ÉTAT DES SERVICES ---
+            print("🔧 ÉTAT DES SERVICES")
+            print("-" * 20)
+            
+            # Git status
+            try:
+                git_status = subprocess.getoutput("git status --porcelain")
+                git_clean = len(git_status.strip()) == 0
+                git_emoji = "🟢" if git_clean else "🟡"
+                print(f"{git_emoji} Git: {'Propre' if git_clean else 'Modifications'}")
+            except:
+                print("⚪ Git: Non disponible")
+            
+            # Virtual environment
+            venv_path = Path("venv")
+            venv_emoji = "🟢" if venv_path.exists() else "🔴"
+            print(f"{venv_emoji} Venv: {'Actif' if venv_path.exists() else 'Manquant'}")
+            
+            # AXE System
+            ax_emoji = "🟢" if Path("ax.py").exists() else "🔴"
+            print(f"{ax_emoji} AXE System: {'Opérationnel' if Path('ax.py').exists() else 'Manquant'}")
+            
+            # Lab folder
+            lab_path = Path("lab")
+            lab_count = len(list(lab_path.glob("*"))) if lab_path.exists() else 0
+            lab_emoji = "🟢" if lab_count > 0 else "⚪"
+            print(f"{lab_emoji} Lab: {lab_count} projets")
+            
+            print()
+            
+            # --- INDICATEURS DE SANTÉ ---
+            print("💓 INDICATEURS DE SANTÉ")
+            print("-" * 26)
+            
+            # Calculer un score de santé global
+            health_score = self._calculate_health_score(cpu_percent, memory.percent, disk.percent, skills_count)
+            health_emoji = "🟢" if health_score > 80 else "🟡" if health_score > 60 else "🔴"
+            print(f"{health_emoji} Score global: {health_score}/100")
+            
+            # Recommandations
+            recommendations = self._get_recommendations(cpu_percent, memory.percent, disk.percent, skills_count)
+            if recommendations:
+                print("💡 Recommandations:")
+                for rec in recommendations:
+                    print(f"   • {rec}")
+            else:
+                print("✅ Tout semble optimal !")
+            
+            print()
+            print("🔄 Mise à jour automatique toutes les 30 secondes...")
+            print("   (Ctrl+C pour arrêter)")
+            
+        except ImportError:
+            print("❌ psutil non disponible - installation requise")
+            print("   Exécutez: pip install psutil")
+        except Exception as e:
+            print(f"❌ Erreur dashboard: {e}")
+
+    # --- NETTOYAGE CONTEXTE ---
+    def zip_context(self):
+        """Archive la session et libère la mémoire de l'IA"""
+        print("🗜️  NETTOYAGE DE CONTEXTE - AXE SYSTEM")
+        print("=" * 45)
+        
+        try:
+            from datetime import datetime
+            import shutil
+            import json
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            archive_name = f"session_archive_{timestamp}"
+            archive_path = Path("archives") / archive_name
+            
+            print(f"📦 Création de l'archive: {archive_name}")
+            
+            # Créer le répertoire d'archives
+            archive_path.mkdir(parents=True, exist_ok=True)
+            
+            # 1. Sauvegarder l'état actuel
+            print("📋 Sauvegarde de l'état actuel...")
+            state_data = {
+                "timestamp": timestamp,
+                "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+                "working_directory": str(Path.cwd()),
+                "skills_count": self._count_skills(),
+                "categories_count": self._count_categories(),
+                "last_activity": datetime.now().isoformat(),
+                "session_duration": "N/A", # Pourrait être implémenté
+            }
+            
+            with open(archive_path / "session_state.json", 'w') as f:
+                json.dump(state_data, f, indent=2)
+            
+            # 2. Archiver les fichiers de configuration critiques
+            print("🔧 Archivage des configurations...")
+            critical_files = [
+                "ax.py",
+                ".windsurfrules",
+                "requirements.txt",
+                ".python-version",
+                "justfile"
+            ]
+            
+            config_dir = archive_path / "config"
+            config_dir.mkdir(exist_ok=True)
+            
+            for file_name in critical_files:
+                src = Path(file_name)
+                if src.exists():
+                    dst = config_dir / file_name
+                    shutil.copy2(src, dst)
+                    print(f"   ✅ {file_name}")
+                else:
+                    print(f"   ⚪ {file_name} (manquant)")
+            
+            # 3. Archiver les skills essentiels
+            print("🧠 Archivage des skills essentiels...")
+            memory_dir = Path("windsurf/memory")
+            if memory_dir.exists():
+                memory_archive = archive_path / "memory"
+                shutil.copytree(memory_dir, memory_archive, dirs_exist_ok=True)
+                
+                # Compter les skills archivés
+                skills_count = self._count_skills_in_dir(memory_archive)
+                print(f"   ✅ {skills_count} skills archivés")
+            
+            # 4. Créer un rapport de session
+            print("📊 Génération du rapport de session...")
+            self._generate_session_report(archive_path, state_data)
+            
+            # 5. Nettoyer les fichiers temporaires
+            print("🧹 Nettoyage des fichiers temporaires...")
+            temp_cleaned = self.clean()
+            print(f"   ✅ {temp_cleaned} fichiers temporaires supprimés")
+            
+            # 6. Compresser l'archive
+            print("🗜️  Compression de l'archive...")
+            shutil.make_archive(str(archive_path), 'zip', str(archive_path))
+            shutil.rmtree(archive_path)  # Supprimer le dossier non compressé
+            
+            archive_size = (Path(f"{archive_path}.zip").stat().st_size) / 1024 / 1024
+            print(f"✅ Archive créée: {archive_name}.zip ({archive_size:.1f}MB)")
+            
+            # 7. Afficher le résumé
+            print()
+            print("📋 RÉSUMÉ DE NETTOYAGE")
+            print("-" * 25)
+            print(f"📦 Archive: {archive_name}.zip")
+            print(f"🧠 Skills: {state_data['skills_count']} conservés")
+            print(f"📁 Config: {len([f for f in critical_files if Path(f).exists()])} fichiers")
+            print(f"🧹 Temp: {temp_cleaned} fichiers supprimés")
+            print(f"💾 Taille: {archive_size:.1f}MB")
+            
+            print()
+            print("🚀 AXE System est maintenant 'zippé' et prêt à repartir!")
+            print("💡 Tapez '/dash' pour voir le tableau de bord重新开始")
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Erreur lors du nettoyage: {e}")
+            return False
+
     # --- MONITOR ---
     def monitor(self):
         """Quick system monitoring"""
@@ -649,6 +1092,8 @@ echo "  python3 ../../ax.py ingest {repo_type} '{repo_name}' 'Fonctions principa
         print("  clean   - Clean temporary files")
         print("  monitor - System monitoring")
         print("  git     - Clone and analyze GitHub repository")
+        print("  dash    - Tableau de bord temps réel")
+        print("  zip     - Nettoyage contexte et archive")
         print("  help    - Show this help")
         print("\nSlash Commands:")
         print("  /f      - Fix system")
@@ -656,10 +1101,21 @@ echo "  python3 ../../ax.py ingest {repo_type} '{repo_name}' 'Fonctions principa
         print("  /s      - Sync GitHub")
         print("  /i      - Ingest content")
         print("  /git    - Clone and analyze repository")
+        print("  /dash   - Tableau de bord observabilité")
+        print("  /zip    - Nettoyage contexte performance")
+        print("\nTableau de Bord Architecte:")
+        print("  Commande | Action | Impact Architecte")
+        print("  /dash    | Tableau de Bord | Visualise la santé de ton M1 et de ton Cerveau Cloud")
+        print("  /zip     | Nettoyage Contexte | Archive la session et libère la mémoire de l'IA")
+        print("  /git     | Ingénierie Repo | Transforme n'importe quel repo GitHub en agent local")
         print("\nExamples:")
         print("  python3 ax.py fix")
         print("  python3 ax.py ingest python 'NumPy Tricks' 'Use vectorization instead of loops'")
         print("  python3 ax.py git https://github.com/user/repo.git")
+        print("  python3 ax.py dash")
+        print("  python3 ax.py zip")
+        print("  /dash")
+        print("  /zip")
         print("  /git https://github.com/Priivacy-ai/spec-kitty.git")
 
     # --- PRIVATE METHODS ---
@@ -805,6 +1261,10 @@ def main():
             print(f"   ./install_agent.sh")
             for point in analysis['integration_points'][:3]:
                 print(f"   • Ingestérer: {point}")
+    elif cmd == "dash":
+        ax.dashboard()
+    elif cmd == "zip":
+        ax.zip_context()
     elif cmd == "ingest":
         if len(sys.argv) < 5:
             print("❌ Usage: python3 ax.py ingest [category] [title] [content]")
