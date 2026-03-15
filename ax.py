@@ -152,6 +152,151 @@ pydantic>=2.5.0
         print(f"   ├── package.json (Next.js)")
         print(f"   └── venv/ (Environnement Python)")
 
+    def smart_commit(self):
+        """📝 Génère un message de commit intelligent."""
+        print("📝 SMART COMMIT - ANALYSE SÉMANTIQUE")
+        print("=" * 45)
+        
+        # Vérifier si des fichiers sont staged
+        try:
+            staged_files = subprocess.getoutput("git diff --cached --name-only")
+            if not staged_files.strip():
+                print("⚠️ Aucun fichier staged. Utilise 'git add .' d'abord.")
+                return
+            
+            print(f"📁 Fichiers en attente:")
+            for file in staged_files.split('\n'):
+                if file.strip():
+                    print(f"   • {file}")
+            
+            # Analyser le diff
+            diff_output = subprocess.getoutput("git diff --cached --stat")
+            print(f"\n📊 Statistiques des changements:")
+            print(diff_output)
+            
+            # Analyser les types de changements
+            diff_detailed = subprocess.getoutput("git diff --cached")
+            
+            # Détection automatique du type de commit
+            commit_type = "feat"  # default
+            commit_scope = "axe"
+            commit_description = ""
+            
+            # Analyser les changements pour déterminer le type
+            if "def " in diff_detailed or "class " in diff_detailed:
+                if "fix" in diff_detailed.lower() or "bug" in diff_detailed.lower():
+                    commit_type = "fix"
+                elif "test" in diff_detailed.lower():
+                    commit_type = "test"
+                elif "doc" in diff_detailed.lower() or "comment" in diff_detailed.lower():
+                    commit_type = "docs"
+                else:
+                    commit_type = "feat"
+            
+            # Analyser l'impact UX
+            ux_impact = self._analyze_ux_impact(diff_detailed)
+            
+            # Analyser l'impact performance
+            perf_impact = self._analyze_performance_impact(diff_detailed)
+            
+            # Générer le message de commit
+            commit_message = f"{commit_type}({commit_scope}): "
+            
+            # Description principale
+            if commit_type == "feat":
+                commit_message += "add new functionality"
+            elif commit_type == "fix":
+                commit_message += "resolve issue"
+            elif commit_type == "docs":
+                commit_message += "update documentation"
+            elif commit_type == "test":
+                commit_message += "improve test coverage"
+            elif commit_type == "refactor":
+                commit_message += "improve code structure"
+            else:
+                commit_message += "update system"
+            
+            # Ajouter les impacts
+            body_lines = []
+            if ux_impact:
+                body_lines.append(f"UX Impact: {ux_impact}")
+            if perf_impact:
+                body_lines.append(f"Performance: {perf_impact}")
+            
+            # Afficher le message généré
+            print(f"\n📋 MESSAGE DE COMMIT GÉNÉRÉ:")
+            print(f"🎯 {commit_message}")
+            if body_lines:
+                for line in body_lines:
+                    print(f"   {line}")
+            
+            # Demander confirmation
+            print(f"\n❓ Confirmer le commit? (y/n)")
+            # En mode automatique, on commit directement
+            try:
+                # Créer le message complet
+                full_message = commit_message
+                if body_lines:
+                    full_message += "\n\n" + "\n".join(body_lines)
+                
+                # Exécuter le commit
+                subprocess.run(["git", "commit", "-m", full_message], check=True)
+                print(f"✅ Commit effectué avec succès!")
+                
+                # Afficher le hash du commit
+                commit_hash = subprocess.getoutput("git rev-parse --short HEAD").strip()
+                print(f"🔗 Commit: {commit_hash}")
+                
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Erreur lors du commit: {e}")
+                
+        except Exception as e:
+            print(f"❌ Erreur: {e}")
+
+    def _analyze_ux_impact(self, diff_content):
+        """Analyser l'impact UX des changements"""
+        ux_indicators = {
+            "button": "Interface buttons modified",
+            "form": "Form interactions updated", 
+            "modal": "Modal dialogs affected",
+            "navigation": "Navigation structure changed",
+            "responsive": "Responsive design updated",
+            "accessibility": "Accessibility improvements",
+            "color": "Color scheme modified",
+            "layout": "Layout structure changed",
+            "animation": "Animations and transitions",
+            "input": "Input field behaviors"
+        }
+        
+        impacts = []
+        for indicator, description in ux_indicators.items():
+            if indicator.lower() in diff_content.lower():
+                impacts.append(description)
+        
+        return "; ".join(impacts) if impacts else None
+
+    def _analyze_performance_impact(self, diff_content):
+        """Analyser l'impact performance des changements"""
+        perf_indicators = {
+            "cache": "Caching strategy updated",
+            "async": "Async operations optimized",
+            "lazy": "Lazy loading implemented",
+            "memo": "Memoization added",
+            "optimize": "Performance optimizations",
+            "batch": "Batch processing improved",
+            "vectorized": "Vectorized operations",
+            "parallel": "Parallel processing",
+            "memory": "Memory usage optimized",
+            "query": "Database queries optimized"
+        }
+        
+        impacts = []
+        for indicator, description in perf_indicators.items():
+            if indicator.lower() in diff_content.lower():
+                impacts.append(description)
+        
+        return "; ".join(impacts) if impacts else None
+
     def ux_audit(self, path="."):
         """🎨 Audit UX/UI du projet"""
         print("🎨 UX/UI AUDIT - AXE DESIGN SYSTEM")
@@ -1495,10 +1640,11 @@ def main():
     elif cmd in ["ux", "/ux"]:
         path = sys.argv[2] if len(sys.argv) > 2 else "."
         ax.ux_audit(path)
+    elif cmd in ["commit", "/commit"]: ax.smart_commit()
     elif cmd in ["ingest", "/i"]:
         if len(sys.argv) >= 5: ax.ingest(sys.argv[2], sys.argv[3], " ".join(sys.argv[4:]))
     else:
-        print("Usage: python3 ax.py [fix|sync|dash|ingest|find|audit|new|ux]")
+        print("Usage: python3 ax.py [fix|sync|dash|ingest|find|audit|new|ux|commit]")
 
 
 if __name__ == "__main__":

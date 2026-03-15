@@ -11,6 +11,7 @@ shortcuts:
   /audit: "python3 ax.py audit" # Audit compatibilité M1 native
   /new: "python3 ax.py new"   # Scaffolding projet AXE-ready
   /ux: "python3 ax.py ux"     # Audit UX/UI du projet
+  /commit: "python3 ax.py commit" # Commit sémantique architecte
 
 # 🛠️ PROTOCOLE D'ANALYSE GIT
 rules:
@@ -39,7 +40,17 @@ rules:
       3. "Configurer environnement virtuel M1."
       4. "Créer fichiers de configuration (gitignore, requirements, package.json)."
 
-# 📊 PROTOCOLE D'OBSERVABILITÉ
+# � PROTOCOLE COMMIT SÉMANTIQUE
+rules:
+  - if: "L'utilisateur utilise /commit"
+    then: 
+      1. "Analyser les fichiers staged avec git diff --cached."
+      2. "Détecter le type de commit (feat, fix, docs, test, refactor)."
+      3. "Analyser l'impact UX et performance des changements."
+      4. "Générer un message Conventional Commits structuré."
+      5. "Exécuter le commit avec le message généré."
+
+# �📊 PROTOCOLE D'OBSERVABILITÉ
 rules:
   - if: "L'utilisateur utilise /dash"
     then: 
