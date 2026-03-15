@@ -235,6 +235,79 @@ class AXESystem:
         except Exception as e:
             console.print(f"❌ Erreur d'installation: {e}")
 
+    def new(self, *args):
+        """🏗️ Crée un nouveau projet AXE-Ready : /new [nom-du-projet]"""
+        if len(args) < 1:
+            console.print("[red]❌ Usage: /new [nom-du-projet][/red]")
+            return
+            
+        project_name = args[0]
+        console.print(f"🏗️  Scaffolding du projet : {project_name}...")
+        
+        # Création du répertoire
+        os.makedirs(project_name, exist_ok=True)
+        
+        # Copie des règles AXE
+        with open(f"{project_name}/.windsurfrules", "w") as f:
+            f.write("""# AXE Project Rules
+personality: 'Senior Architect'
+optimization: 'M1 Native'
+framework: 'FastAPI/Next.js'
+""")
+        
+        # Création du .gitignore optimisé
+        with open(f"{project_name}/.gitignore", "w") as f:
+            f.write("""# AXE Optimized .gitignore
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+dist/
+build/
+.DS_Store
+""")
+        
+        # Création du requirements.txt M1 optimisé
+        with open(f"{project_name}/requirements.txt", "w") as f:
+            f.write("""# M1 Optimized Dependencies
+numpy>=2.0.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.5.0
+rich>=14.0.0
+psutil>=5.9.0
+""")
+        
+        # Création du venv M1
+        subprocess.run([sys.executable, "-m", "venv", f"{project_name}/venv"], check=True)
+        
+        # Création du package.json si projet Next.js
+        with open(f"{project_name}/package.json", "w") as f:
+            f.write("""{
+  "name": \"""" + project_name + """",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "tailwindcss": "^3.0.0"
+  }
+}
+""")
+        
+        console.print(f"✅ Projet {project_name} prêt. Utilise 'cd {project_name} && /f' pour finaliser.")
+        console.print(f"📁 Structure créée:")
+        console.print(f"   ├── .windsurfrules (Règles AXE)")
+        console.print(f"   ├── .gitignore (Optimisé M1)")
+        console.print(f"   ├── requirements.txt (Dépendances M1)")
+        console.print(f"   ├── package.json (Next.js)")
+        console.print(f"   └── venv/ (Environnement Python)")
+
     def hello(self, *args):
         """👋 Dit bonjour à l'Architecte."""
         console.print("[bold green]👋 Salut Architecte! Prêt pour la mission M1?[/bold green]")
