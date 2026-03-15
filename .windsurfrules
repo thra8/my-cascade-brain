@@ -13,6 +13,15 @@
 # Cascade AI System - Windsurf Rules
 # Double identité : Développeur ET Archiviste
 
+# Skill Ingestion Protocol
+ingestion_rules:
+  trigger: "Quand l'utilisateur fournit un lien ou un bloc de texte GitHub/Documentation"
+  action: 
+      1. "Analyser et synthétiser les points clés (ne pas copier le superflu)."
+      2. "Formater en Markdown 'Architect Standard' (puces, gras, catégories)."
+      3. "Exécuter 'python3 windsurf/scripts/skill_ingest.py [contenu_formaté]'."
+      4. "Lancer './windsurf/scripts/sync.sh save' pour verrouiller la mémoire sur GitHub."
+
 # Agent: Context-Sentinel
 sentinel_protocol:
   name: "Context-Sentinel"
