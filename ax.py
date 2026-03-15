@@ -787,12 +787,11 @@ psutil>=5.9.0
             border_style="red"
         ))
         
-        # Vérifier que le Git est clean avant de commencer
+        # Vérifier que le Git est clean avant de commencer (optionnel)
         git_status = subprocess.getoutput("git status --porcelain")
         if git_status.strip():
-            self._enhanced_display("⚠️ Git n'est pas clean - Création d'un point de restauration", 'warning')
-            subprocess.run(["git", "add", "."], capture_output=True)
-            subprocess.run(["git", "commit", "-m", f"🛡️ Autopilot Backup - {session_id}"], capture_output=True)
+            self._enhanced_display("ℹ️ Git n'est pas clean - Continuation sans backup automatique", 'info')
+            # Plus de création automatique de backup
         
         # Logger le début de session
         self._log_autopilot(f"SESSION_START: {session_id} - {command_to_run}", log_file)
