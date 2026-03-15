@@ -25,6 +25,10 @@ monitor:
 ingest category title content:
     python3 ax.py ingest {{category}} {{title}} {{content}}
 
+# Clone et analyse de dépôt GitHub
+git url:
+    python3 ax.py git {{url}}
+
 # Aide
 help:
     python3 ax.py help

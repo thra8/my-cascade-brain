@@ -4,6 +4,16 @@ shortcuts:
   /s: "python3 ax.py sync"   # Sauvegarde GitHub
   /h: "python3 ax.py health" # Santé du système
   /i: "python3 ax.py ingest" # Ingestion : /i [Cat] [Titre] [Content]
+  /git: "python3 ax.py git"   # Clone et analyse dépôt GitHub
+
+# 🛠️ PROTOCOLE D'ANALYSE GIT
+rules:
+  - if: "L'utilisateur utilise /git [URL]"
+    then: 
+      1. "Exécuter 'python3 ax.py git_clone [URL]'."
+      2. "Analyser le README.md et les fichiers de config du dépôt cloné."
+      3. "Générer un script d'installation 'install_agent.sh' spécifique au projet."
+      4. "Proposer une intégration dans l'architecture AXE existante."
 
 # Force Cascade à ne PAS discuter quand un / est utilisé : Exécution directe.
 rule_on_commands: "Dès qu'un message commence par '/', n'affiche aucun blabla technique. Exécute la commande et donne uniquement le résultat (Succès/Échec)."

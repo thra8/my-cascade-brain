@@ -218,6 +218,393 @@ class Architect:
         print(f"✅ Cleaned {cleaned_count} files")
         return cleaned_count > 0
 
+    # --- MODULE GIT & ANALYSE ---
+    def git_clone(self, url):
+        """Clone et analyse un dépôt GitHub"""
+        repo_name = url.split("/")[-1].replace(".git", "")
+        target_path = os.path.join("lab", repo_name)
+        
+        print(f"📥 Clonage de {repo_name} dans {target_path}...")
+        os.makedirs("lab", exist_ok=True)
+        
+        try:
+            subprocess.run(["git", "clone", url, target_path], check=True, capture_output=True)
+            print(f"✅ Dépôt cloné. Analyse des dépendances en cours...")
+            
+            # Analyse rapide pour Cascade
+            files = os.listdir(target_path)
+            has_setup = "setup.py" in files or "pyproject.toml" in files
+            has_reqs = "requirements.txt" in files
+            has_node = "package.json" in files
+            has_docker = "Dockerfile" in files
+            has_readme = any(f.lower().startswith("readme") for f in files)
+            
+            print(f"🔍 Détecté: Python({has_setup or has_reqs}), Node({has_node}), Docker({has_docker}), README({has_readme})")
+            
+            # Analyse plus approfondie
+            analysis = self._analyze_repository(target_path, repo_name)
+            
+            return target_path, analysis
+        except Exception as e:
+            print(f"❌ Erreur de clonage: {e}")
+            return None, None
+    
+    def _analyze_repository(self, repo_path, repo_name):
+        """Analyse approfondie du dépôt"""
+        print(f"🔍 Analyse approfondie de {repo_name}...")
+        
+        analysis = {
+            "name": repo_name,
+            "path": repo_path,
+            "type": "unknown",
+            "dependencies": [],
+            "structure": {},
+            "m1_compatible": True,
+            "installation_script": None,
+            "integration_points": []
+        }
+        
+        try:
+            # Analyser les fichiers de configuration
+            config_files = {
+                "requirements.txt": self._analyze_requirements,
+                "setup.py": self._analyze_setup_py,
+                "pyproject.toml": self._analyze_pyproject,
+                "package.json": self._analyze_package_json,
+                "Dockerfile": self._analyze_dockerfile,
+                "README.md": self._analyze_readme,
+                "Makefile": self._analyze_makefile,
+            }
+            
+            for file_name, analyzer in config_files.items():
+                file_path = os.path.join(repo_path, file_name)
+                if os.path.exists(file_path):
+                    try:
+                        result = analyzer(file_path)
+                        analysis.update(result)
+                    except Exception as e:
+                        print(f"⚠️ Erreur analyse {file_name}: {e}")
+            
+            # Analyser la structure du répertoire
+            analysis["structure"] = self._analyze_directory_structure(repo_path)
+            
+            # Déterminer le type de projet
+            analysis["type"] = self._determine_project_type(analysis)
+            
+            # Vérifier la compatibilité M1
+            analysis["m1_compatible"] = self._check_m1_compatibility(analysis)
+            
+            # Générer le script d'installation
+            analysis["installation_script"] = self._generate_install_script(analysis)
+            
+            # Identifier les points d'intégration
+            analysis["integration_points"] = self._identify_integration_points(analysis)
+            
+            print(f"✅ Analyse terminée: {analysis['type']} (M1: {'✅' if analysis['m1_compatible'] else '❌'})")
+            
+        except Exception as e:
+            print(f"❌ Erreur analyse: {e}")
+            analysis["error"] = str(e)
+        
+        return analysis
+    
+    def _analyze_requirements(self, file_path):
+        """Analyser requirements.txt"""
+        deps = []
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    package = line.split("==")[0].split(">=")[0].split("<=")[0].strip()
+                    deps.append(package)
+        
+        return {"dependencies": deps, "package_manager": "pip"}
+    
+    def _analyze_setup_py(self, file_path):
+        """Analyser setup.py"""
+        deps = []
+        try:
+            with open(file_path, 'r') as f:
+                content = f.read()
+                # Simple regex pour les dépendances
+                import re
+                matches = re.findall(r'install_requires\s*=\s*\[(.*?)\]', content, re.DOTALL)
+                if matches:
+                    deps_str = matches[0]
+                    deps = [dep.strip().strip('"\'') for dep in deps_str.split(",") if dep.strip()]
+        except:
+            pass
+        
+        return {"dependencies": deps, "package_manager": "pip", "setup_py": True}
+    
+    def _analyze_pyproject(self, file_path):
+        """Analyser pyproject.toml"""
+        try:
+            import tomllib
+            with open(file_path, 'rb') as f:
+                data = tomllib.load(f)
+            
+            deps = []
+            if "project" in data and "dependencies" in data["project"]:
+                deps = data["project"]["dependencies"]
+            
+            return {"dependencies": deps, "package_manager": "pip", "pyproject": True}
+        except:
+            return {"dependencies": [], "package_manager": "pip"}
+    
+    def _analyze_package_json(self, file_path):
+        """Analyser package.json"""
+        try:
+            import json
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+            
+            deps = []
+            if "dependencies" in data:
+                deps = list(data["dependencies"].keys())
+            
+            return {"dependencies": deps, "package_manager": "npm", "node_project": True}
+        except:
+            return {"dependencies": [], "package_manager": "npm"}
+    
+    def _analyze_dockerfile(self, file_path):
+        """Analyser Dockerfile"""
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        has_python = "python" in content.lower()
+        has_node = "node" in content.lower()
+        has_arm64 = "arm64" in content.lower() or "armhf" in content.lower()
+        
+        return {
+            "docker": True,
+            "python": has_python,
+            "node": has_node,
+            "arm64_support": has_arm64
+        }
+    
+    def _analyze_readme(self, file_path):
+        """Analyser README.md"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Extraire des informations clés
+            has_install = "install" in content.lower()
+            has_usage = "usage" in content.lower()
+            has_requirements = "requirements" in content.lower()
+            
+            return {
+                "readme": True,
+                "has_install_instructions": has_install,
+                "has_usage_examples": has_usage,
+                "mentions_requirements": has_requirements
+            }
+        except:
+            return {"readme": False}
+    
+    def _analyze_makefile(self, file_path):
+        """Analyser Makefile"""
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        targets = []
+        for line in content.split("\n"):
+            if ":" in line and not line.startswith("\t"):
+                targets.append(line.split(":")[0].strip())
+        
+        return {"makefile": True, "targets": targets}
+    
+    def _analyze_directory_structure(self, repo_path):
+        """Analyser la structure des répertoires"""
+        structure = {}
+        
+        for root, dirs, files in os.walk(repo_path):
+            rel_path = os.path.relpath(root, repo_path)
+            if rel_path == ".":
+                rel_path = "root"
+            
+            structure[rel_path] = {
+                "dirs": dirs,
+                "files": files,
+                "file_count": len(files)
+            }
+        
+        return structure
+    
+    def _determine_project_type(self, analysis):
+        """Déterminer le type de projet"""
+        if analysis.get("node_project"):
+            return "Node.js"
+        elif analysis.get("setup_py") or analysis.get("pyproject"):
+            return "Python"
+        elif analysis.get("docker"):
+            return "Docker"
+        elif analysis.get("makefile"):
+            return "Make/C/C++"
+        else:
+            return "Unknown"
+    
+    def _check_m1_compatibility(self, analysis):
+        """Vérifier la compatibilité M1"""
+        issues = []
+        
+        # Vérifier les dépendances problématiques
+        problematic_deps = {
+            "tensorflow": "TensorFlow (version M1 disponible)",
+            "opencv-python": "OpenCV (version M1 disponible)",
+            "mysql": "MySQL (utiliser mysqlclient)",
+            "psycopg2": "PostgreSQL (utiliser psycopg2-binary)",
+        }
+        
+        for dep in analysis.get("dependencies", []):
+            dep_name = dep.split("==")[0].split(">=")[0].split("<=")[0]
+            if dep_name in problematic_deps:
+                issues.append(f"{dep_name}: {problematic_deps[dep_name]}")
+        
+        # Vérifier le support ARM64
+        docker_info = analysis.get("docker", {})
+        if isinstance(docker_info, dict) and not docker_info.get("arm64_support", False):
+            issues.append("Dockerfile sans support ARM64 explicite")
+        
+        analysis["compatibility_issues"] = issues
+        return len(issues) == 0
+    
+    def _generate_install_script(self, analysis):
+        """Générer le script d'installation"""
+        repo_name = analysis["name"]
+        script_path = f"lab/{repo_name}/install_agent.sh"
+        
+        script_content = f"""#!/bin/bash
+# Installation Script for {repo_name}
+# Generated by AXE System for M1 Mac
+
+set -e
+
+echo "🚀 Installation de {repo_name} pour M1 Mac..."
+
+# Vérifier Python 3.12+
+if ! command -v python3.12 &> /dev/null; then
+    echo "❌ Python 3.12 requis"
+    exit 1
+fi
+
+# Créer environnement virtuel
+echo "📦 Création environnement virtuel..."
+python3.12 -m venv venv
+source venv/bin/activate
+
+# Installation dépendances
+"""
+        
+        if analysis["type"] == "Python":
+            script_content += """
+# Dépendances Python
+if [ -f "requirements.txt" ]; then
+    echo "📦 Installation dépendances Python..."
+    pip install -r requirements.txt
+else
+    echo "📦 Installation depuis setup.py..."
+    pip install -e .
+fi
+"""
+        
+        elif analysis["type"] == "Node.js":
+            script_content += """
+# Vérifier Node.js
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js requis"
+    exit 1
+fi
+
+# Dépendances Node.js
+if [ -f "package.json" ]; then
+    echo "📦 Installation dépendances Node.js..."
+    npm install
+fi
+"""
+        
+        script_content += f"""
+
+# Configuration M1
+echo "⚡ Configuration pour M1 Mac..."
+export CFLAGS="-O3 -march=arm64"
+export CXXFLAGS="-O3 -march=arm64"
+
+# Test d'installation
+echo "🧪 Test d'installation..."
+"""
+        
+        if analysis["type"] == "Python":
+            script_content += """
+python -c "import sys; print(f'Python {sys.version} OK')"
+"""
+        elif analysis["type"] == "Node.js":
+            script_content += """
+node -v
+npm --version
+"""
+        
+        script_content += f"""
+
+echo "✅ Installation terminée pour {repo_name}"
+echo "📍 Projet installé dans: $(pwd)"
+echo "🔧 Commandes disponibles:"
+"""
+        
+        if analysis["type"] == "Python":
+            script_content += """
+echo "  source venv/bin/activate  # Activer environnement"
+echo "  python main.py            # Lancer application" """
+        elif analysis["type"] == "Node.js":
+            script_content += """
+echo "  npm start                 # Lancer application"
+echo "  npm run dev               # Mode développement" """
+        
+        script_content += """
+echo ""
+echo "🧠 Pour intégrer dans AXE System:"
+echo "  python3 ../../ax.py ingest {repo_type} '{repo_name}' 'Fonctions principales du projet'"
+"""
+        
+        # Écrire le script
+        with open(script_path, 'w') as f:
+            f.write(script_content)
+        
+        # Rendre exécutable
+        os.chmod(script_path, 0o755)
+        
+        return script_path
+    
+    def _identify_integration_points(self, analysis):
+        """Identifier les points d'intégration avec AXE System"""
+        integration_points = []
+        
+        # Fonctions principales à ingérer
+        if analysis["type"] == "Python":
+            integration_points.extend([
+                "Classes principales du projet",
+                "Fonctions utilitaires importantes",
+                "Patterns de code réutilisables",
+                "Configuration et paramètres"
+            ])
+        elif analysis["type"] == "Node.js":
+            integration_points.extend([
+                "Modules ES6 importants",
+                "Fonctions utilitaires",
+                "Configuration",
+                "API endpoints ou services"
+            ])
+        
+        # Fichiers de configuration
+        if analysis.get("readme", {}).get("has_install_instructions"):
+            integration_points.append("Instructions d'installation")
+        
+        if analysis.get("makefile"):
+            integration_points.append("Cibles Make utiles")
+        
+        return integration_points
+
     # --- MONITOR ---
     def monitor(self):
         """Quick system monitoring"""
@@ -261,11 +648,19 @@ class Architect:
         print("  sync    - Synchronize with GitHub")
         print("  clean   - Clean temporary files")
         print("  monitor - System monitoring")
+        print("  git     - Clone and analyze GitHub repository")
         print("  help    - Show this help")
+        print("\nSlash Commands:")
+        print("  /f      - Fix system")
+        print("  /h      - Health check")
+        print("  /s      - Sync GitHub")
+        print("  /i      - Ingest content")
+        print("  /git    - Clone and analyze repository")
         print("\nExamples:")
         print("  python3 ax.py fix")
         print("  python3 ax.py ingest python 'NumPy Tricks' 'Use vectorization instead of loops'")
-        print("  python3 ax.py sync")
+        print("  python3 ax.py git https://github.com/user/repo.git")
+        print("  /git https://github.com/Priivacy-ai/spec-kitty.git")
 
     # --- PRIVATE METHODS ---
     def _create_essential_files(self):
@@ -388,6 +783,28 @@ def main():
         ax.monitor()
     elif cmd == "help":
         ax.help()
+    elif cmd == "git":
+        if len(sys.argv) < 3:
+            print("❌ Usage: python3 ax.py git [GitHub URL]")
+            return
+        url = sys.argv[2]
+        target_path, analysis = ax.git_clone(url)
+        if target_path and analysis:
+            print(f"\n📊 Analyse complète:")
+            print(f"📁 Type: {analysis['type']}")
+            print(f"📦 Dépendances: {len(analysis['dependencies'])}")
+            print(f"🍎 M1 Compatible: {'✅' if analysis['m1_compatible'] else '❌'}")
+            if analysis.get('compatibility_issues'):
+                print("⚠️ Issues de compatibilité:")
+                for issue in analysis['compatibility_issues']:
+                    print(f"   • {issue}")
+            print(f"📜 Script: {analysis['installation_script']}")
+            print(f"🔗 Points d'intégration: {len(analysis['integration_points'])}")
+            print(f"\n🚀 Prochaines étapes:")
+            print(f"   cd lab/{analysis['name']}")
+            print(f"   ./install_agent.sh")
+            for point in analysis['integration_points'][:3]:
+                print(f"   • Ingestérer: {point}")
     elif cmd == "ingest":
         if len(sys.argv) < 5:
             print("❌ Usage: python3 ax.py ingest [category] [title] [content]")
