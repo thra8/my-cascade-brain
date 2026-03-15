@@ -13,6 +13,7 @@ shortcuts:
   /spec: "Instruction: Rédige une spécification technique avant de coder."
   /ux: "Instruction: Analyse le code via les principes de design Senior UX."
   /web: "Affiche le catalogue des ressources et serveurs MCP."
+  /mcp-check: "Lance l'audit de santé des serveurs Model Context Protocol."
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
   /orchestrate: "Lancement d'un débat technique multi-experts."
@@ -33,6 +34,14 @@ rules:
       2. "Vérifier les pré-requis (Node.js, Docker, API Keys)."
       3. "Proposer de générer le bloc JSON de configuration pour Windsurf."
       4. "Si c'est un SKILL.md, l'ingérer via 'ax /i [cat] [nom] [content]'."
+
+# 🛡️ MCP SENTINEL
+rules:
+  - if: "L'utilisateur utilise /mcp-check"
+    then: 
+      1. "Exécuter 'python3 ax.py mcp_check'."
+      2. "Si un serveur est OFFLINE, identifier la dépendance manquante (npm, pip, etc.)."
+      3. "Proposer une commande de réparation immédiate."
 
 # 🧠 CASCADE ARCHITECT MODE
 rules:

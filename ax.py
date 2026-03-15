@@ -519,6 +519,105 @@ psutil>=5.9.0
         console.print(f"   ├── package.json (Next.js)")
         console.print(f"   └── venv/ (Environnement Python)")
 
+    def mcp_check(self, *args):
+        """🛡️ Vérifie l'état de santé et la configuration des serveurs MCP."""
+        import json
+        
+        # Affichage avec micro-interactions
+        self._add_micro_interactions("Analyse des serveurs MCP...", show_spinner=True)
+        
+        # Chemin standard de la config MCP sur Windsurf macOS
+        config_path = os.path.expanduser("~/Library/Application Support/Windsurf/mcp_config.json")
+        
+        if not os.path.exists(config_path):
+            config_path = os.path.expanduser("~/.config/windsurf/mcp_config.json")
+        
+        if not os.path.exists(config_path):
+            self._enhanced_display("❌ Fichier mcp_config.json introuvable", 'error')
+            self._enhanced_display("💡 Vérifie que Windsurf est bien installé et configuré", 'info')
+            return
+
+        try:
+            with open(config_path, "r") as f:
+                config = json.load(f)
+
+            servers = config.get("mcpServers", {})
+            if not servers:
+                self._enhanced_display("📭 Aucun serveur MCP configuré", 'warning')
+                self._enhanced_display("💡 Utilise /web pour découvrir et installer des serveurs MCP", 'info')
+                return
+
+            table = Table(title="🛡️ MCP HEALTH CHECK", header_style="bold magenta")
+            table.add_column("Serveur", style="bold cyan")
+            table.add_column("Commande", style="white")
+            table.add_column("Args", style="dim")
+            table.add_column("Status", justify="center")
+            table.add_column("Action", style="yellow")
+
+            online_count = 0
+            offline_count = 0
+
+            for name, data in servers.items():
+                cmd = data.get("command", "")
+                args = data.get("args", [])
+                full_cmd = f"{cmd} {' '.join(args)}"
+                
+                # Vérification de l'existence du binaire
+                binary_path = subprocess.getoutput(f"which {cmd}")
+                is_online = bool(binary_path) and not ("not found" in binary_path)
+                
+                if is_online:
+                    status = "[green]ONLINE ✅[/green]"
+                    action = "✅ OK"
+                    online_count += 1
+                else:
+                    status = "[red]OFFLINE ❌[/red]"
+                    # Suggestion de réparation
+                    if cmd == "npx":
+                        action = "npm install -g npx"
+                    elif cmd == "python3":
+                        action = "brew install python@3.12"
+                    elif cmd == "docker":
+                        action = "brew install docker"
+                    else:
+                        action = f"Installer {cmd}"
+                    offline_count += 1
+                
+                # Tronquer les commandes longues
+                display_cmd = full_cmd[:40] + "..." if len(full_cmd) > 40 else full_cmd
+                display_args = " ".join(args)[:20] + "..." if len(" ".join(args)) > 20 else " ".join(args)
+                
+                table.add_row(name, cmd, display_args, status, action)
+
+            console.print(table)
+            
+            # Statistiques de santé
+            total_servers = len(servers)
+            health_percentage = (online_count / total_servers) * 100
+            
+            console.print(Panel(
+                f"[bold cyan]📊 Statistiques MCP[/bold cyan]\n"
+                f"Serveurs totaux : {total_servers}\n"
+                f"En ligne : [green]{online_count}[/green]\n"
+                f"Hors ligne : [red]{offline_count}[/red]\n"
+                f"Santé globale : {health_percentage:.1f}%",
+                title="🛡️ État de Santé",
+                border_style="green" if health_percentage > 80 else "yellow" if health_percentage > 50 else "red"
+            ))
+            
+            # Recommandations
+            if offline_count > 0:
+                self._enhanced_display("⚠️ Des serveurs sont hors ligne - Exécute les commandes suggérées", 'warning')
+            if health_percentage < 80:
+                self._enhanced_display("🔧 Considère /web pour installer des serveurs MCP fiables", 'info')
+            
+            console.print(f"\n[dim]Configuration : {config_path}[/dim]")
+            
+        except json.JSONDecodeError:
+            self._enhanced_display("❌ Erreur de lecture du fichier de configuration MCP", 'error')
+        except Exception as e:
+            self._enhanced_display(f"❌ Erreur lors du diagnostic MCP : {e}", 'error')
+
     def web(self, *args):
         """🌐 Catalogue des serveurs MCP et Skills à télécharger."""
         # Affichage avec micro-interactions
