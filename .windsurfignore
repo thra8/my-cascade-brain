@@ -1,0 +1,63 @@
+# 🚀 AXE SYSTEM - CONTEXT PRUNING
+# Empêche Cascade d'indexer les fichiers inutiles
+
+# Python
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Git
+.git/
+.gitignore
+
+# Logs et temporaires
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# IDE et éditeurs
+.vscode/
+.idea/
+*.sublime-*
+
+# Lab et expérimentations
+lab/
+archives/
+backups/
+
+# Fichiers système
+*.pid
+*.lock
+
+# Documentation générée
+docs/_build/
+site/
+
+# Coverage et tests
+coverage/
+.nyc_output/
+.pytest_cache/
+
+# MacOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node.js (si présent)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
