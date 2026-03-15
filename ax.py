@@ -761,6 +761,143 @@ psutil>=5.9.0
         except Exception as e:
             self._enhanced_display(f"❌ Erreur lors de la réparation MCP : {e}", 'error')
 
+    def autopilot(self, *args):
+        """🚀 Lance un cycle d'exécution automatique avec auto-correction."""
+        if len(args) < 1:
+            self._enhanced_display("❌ Usage: /autopilot [commande_à_exécuter]", 'error')
+            self._enhanced_display("💡 Exemple: /autopilot 'npm test'", 'info')
+            return
+        
+        command_to_run = " ".join(args)
+        
+        # Créer le répertoire de logs autopilot
+        autopilot_dir = os.path.join(self.base_path, "autopilot")
+        os.makedirs(autopilot_dir, exist_ok=True)
+        
+        # Fichier de log pour cette session
+        session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_file = os.path.join(autopilot_dir, f"session_{session_id}.log")
+        
+        console.print(Panel(
+            f"[bold red]⚠️ MODE AUTOPILOTE ACTIVÉ[/bold red]\n"
+            f"[dim]Commande : {command_to_run}[/dim]\n"
+            f"[dim]Session : {session_id}[/dim]\n"
+            f"[dim]Log : {log_file}[/dim]",
+            title="🚀 AXE AUTOPILOT",
+            border_style="red"
+        ))
+        
+        # Vérifier que le Git est clean avant de commencer
+        git_status = subprocess.getoutput("git status --porcelain")
+        if git_status.strip():
+            self._enhanced_display("⚠️ Git n'est pas clean - Création d'un point de restauration", 'warning')
+            subprocess.run(["git", "add", "."], capture_output=True)
+            subprocess.run(["git", "commit", "-m", f"🛡️ Autopilot Backup - {session_id}"], capture_output=True)
+        
+        # Logger le début de session
+        self._log_autopilot(f"SESSION_START: {session_id} - {command_to_run}", log_file)
+        
+        # Cycle d'exécution avec auto-correction
+        max_attempts = 3
+        current_attempt = 0
+        
+        while current_attempt < max_attempts:
+            current_attempt += 1
+            self._add_micro_interactions(f"Tentative {current_attempt}/{max_attempts}...", show_spinner=True)
+            
+            # Exécuter la commande
+            try:
+                result = subprocess.run(command_to_run, shell=True, capture_output=True, text=True, timeout=300)
+                
+                # Logger les résultats
+                self._log_autopilot(f"ATTEMPT_{current_attempt}: RETURN_CODE={result.returncode}", log_file)
+                if result.stdout:
+                    self._log_autopilot(f"STDOUT: {result.stdout}", log_file)
+                if result.stderr:
+                    self._log_autopilot(f"STDERR: {result.stderr}", log_file)
+                
+                if result.returncode == 0:
+                    # Succès !
+                    console.print(f"[green]✅ Étape validée automatiquement (tentative {current_attempt}).[/green]")
+                    self._log_autopilot(f"SUCCESS: Command completed successfully on attempt {current_attempt}", log_file)
+                    
+                    # Auto-commit si succès
+                    try:
+                        subprocess.run(["git", "add", "."], capture_output=True)
+                        commit_msg = f"🚀 Autopilot Success - {session_id} - Attempt {current_attempt}"
+                        subprocess.run(["git", "commit", "-m", commit_msg], capture_output=True)
+                        self._log_autopilot(f"AUTO_COMMIT: {commit_msg}", log_file)
+                        self._enhanced_display("📝 Modifications auto-committées", 'success')
+                    except Exception as e:
+                        self._log_autopilot(f"AUTO_COMMIT_ERROR: {e}", log_file)
+                    
+                    break
+                else:
+                    # Erreur détectée
+                    console.print(f"[yellow]❌ Erreur détectée (tentative {current_attempt}/{max_attempts}).[/yellow]")
+                    self._log_autopilot(f"ERROR: Command failed on attempt {current_attempt}", log_file)
+                    
+                    if current_attempt < max_attempts:
+                        console.print("[yellow]🔧 Demande de réparation à Cascade...[/yellow]")
+                        self._log_autopilot(f"REPAIR_REQUEST: Asking Cascade to fix the error", log_file)
+                        
+                        # Créer un fichier d'erreur pour que Cascade le lise via son contexte
+                        error_file = os.path.join(autopilot_dir, f"error_{session_id}_attempt{current_attempt}.md")
+                        with open(error_file, "w") as f:
+                            f.write(f"# Autopilot Error - Attempt {current_attempt}\n\n")
+                            f.write(f"**Command**: {command_to_run}\n")
+                            f.write(f"**Return Code**: {result.returncode}\n")
+                            f.write(f"**Stdout**:\n```\n{result.stdout}\n```\n\n")
+                            f.write(f"**Stderr**:\n```\n{result.stderr}\n```\n\n")
+                            f.write(f"**Timestamp**: {datetime.datetime.now()}\n")
+                        
+                        self._enhanced_display(f"📄 Erreur loggée dans {error_file}", 'info')
+                        
+                        # Pause pour laisser Cascade analyser et corriger
+                        time.sleep(2)
+                    else:
+                        console.print("[red]❌ Maximum des tentatives atteintes. Arrêt du cycle.[/red]")
+                        self._log_autopilot(f"MAX_ATTEMPTS_REACHED: Stopping autopilot cycle", log_file)
+                        
+            except subprocess.TimeoutExpired:
+                console.print(f"[red]❌ Timeout après 300s (tentative {current_attempt}).[/red]")
+                self._log_autopilot(f"TIMEOUT: Command timed out on attempt {current_attempt}", log_file)
+                
+                if current_attempt < max_attempts:
+                    console.print("[yellow]🔄 Nouvelle tentative...[/yellow]")
+                    time.sleep(1)
+                else:
+                    console.print("[red]❌ Timeout répété. Arrêt du cycle.[/red]")
+                    break
+                    
+            except Exception as e:
+                console.print(f"[red]❌ Erreur inattendue : {e}[/red]")
+                self._log_autopilot(f"UNEXPECTED_ERROR: {e}", log_file)
+                break
+        
+        # Logger la fin de session
+        self._log_autopilot(f"SESSION_END: {session_id} - Final attempt: {current_attempt}", log_file)
+        
+        console.print(Panel(
+            f"[bold cyan]📊 Session Autopilot Terminée[/bold cyan]\n"
+            f"Tentatives : {current_attempt}/{max_attempts}\n"
+            f"Log : {log_file}",
+            title="🚀 RÉSULTATS AUTOPILOT",
+            border_style="cyan"
+        ))
+
+    def _log_autopilot(self, message, log_file):
+        """Logger spécial pour les sessions autopilot"""
+        timestamp = datetime.datetime.now().isoformat()
+        log_entry = f"[{timestamp}] {message}\n"
+        
+        try:
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(log_entry)
+        except Exception as e:
+            # Fallback si le fichier n'est pas accessible
+            console.print(f"[red]❌ Erreur de log autopilot : {e}[/red]")
+
     def web(self, *args):
         """🌐 Catalogue des serveurs MCP et Skills à télécharger."""
         # Affichage avec micro-interactions

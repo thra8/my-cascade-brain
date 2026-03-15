@@ -15,6 +15,7 @@ shortcuts:
   /web: "Affiche le catalogue des ressources et serveurs MCP."
   /mcp-check: "Lance l'audit de santé des serveurs Model Context Protocol."
   /heal: "Lance la procédure de réparation automatique des serveurs MCP."
+  /autopilot: "Active l'exécution et la validation automatique sans confirmation."
   /focus: "Instruction: Limite ton contexte aux dossiers concernés."
   /zip: "Instruction: Résume la session et propose un reset de contexte."
   /orchestrate: "Lancement d'un débat technique multi-experts."
@@ -44,7 +45,7 @@ rules:
       2. "Si un serveur est OFFLINE, identifier la dépendance manquante (npm, pip, etc.)."
       3. "Proposer une commande de réparation immédiate."
 
-# � MCP SELF-HEALING PROTOCOL
+# 🩹 MCP SELF-HEALING PROTOCOL
 rules:
   - if: "Un serveur MCP renvoie une erreur de connexion"
     then: 
@@ -52,7 +53,17 @@ rules:
       2. "Si OFFLINE, demander la permission de lancer /heal."
       3. "Après /heal, rafraîchir la connexion MCP dans Windsurf."
 
-# �🧠 CASCADE ARCHITECT MODE
+# ⚡ PROTOCOLE AUTOPILOTE (DANGER ZONE)
+rules:
+  - if: "Le mode /autopilot est activé"
+    then:
+      1. "Appliquer systématiquement les modifications de code dès qu'elles sont générées."
+      2. "Exécuter les commandes de terminal nécessaires (build, test, install) sans demander de permission."
+      3. "En cas d'erreur de compilation, tenter 3 corrections automatiques avant de rendre la main."
+      4. "Utiliser 'git add .' et 'git commit -m' automatiquement après chaque étape réussie."
+      5. "En cas d'erreur critique, logger dans 'windsurf/memory/autopilot_errors.log' et arrêter le cycle."
+
+# 🧠 CASCADE ARCHITECT MODE
 rules:
   - "Avant chaque action, effectue un 'Silent Thinking' : Analyse les dépendances, l'impact UX et la compatibilité M1."
   - "Ne propose jamais de solution sans vérifier si un Skill existe déjà dans 'windsurf/memory/' via '/find'."
