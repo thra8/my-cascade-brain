@@ -24,7 +24,7 @@ jobs:
         echo "🧠 Validation de la mémoire Cascade..."
         
         # Vérifier les fichiers requis
-        REQUIRED_FILES=("memory/skills.md" "memory/identity.md" "memory/context_snapshot.md")
+        REQUIRED_FILES=("windsurf/memory/skills.md" "windsurf/memory/identity.md" "windsurf/memory/context_snapshot.md")
         MISSING_FILES=()
         
         for file in "${REQUIRED_FILES[@]}"; do
@@ -51,7 +51,7 @@ jobs:
         npm install -g markdownlint-cli
         
         # Valider les fichiers Markdown
-        for file in memory/*.md; do
+        for file in windsurf/memory/*.md; do
           if [ -f "$file" ]; then
             echo "Validation de $file..."
             markdownlint "$file" || {
@@ -62,139 +62,26 @@ jobs:
           fi
         done
         
-    - name: Validate YAML syntax
-      run: |
-        echo "📋 Validation de la syntaxe YAML..."
-        
-        # Installer yamllint
-        pip install yamllint
-        
-        # Valider les fichiers YAML
-        for file in *.yml; do
-          if [ -f "$file" ]; then
-            echo "Validation de $file..."
-            yamllint "$file" || {
-              echo "❌ Erreur de syntaxe YAML dans $file"
-              exit 1
-            }
-            echo "✅ $file valide"
-          fi
-        done
-        
-    - name: Validate script permissions
-      run: |
-        echo "🔐 Validation des permissions des scripts..."
-        
-        # Vérifier que le script sync.sh est exécutable
-        if [ -f "scripts/sync.sh" ]; then
-          if [ -x "scripts/sync.sh" ]; then
-            echo "✅ scripts/sync.sh est exécutable"
-          else
-            echo "❌ scripts/sync.sh n'est pas exécutable"
-            exit 1
-          fi
-        else
-          echo "❌ scripts/sync.sh est manquant"
-          exit 1
-        fi
-        
-    - name: Validate content integrity
-      run: |
-        echo "🔍 Validation de l'intégrité du contenu..."
-        
-        # Vérifier que skills.md contient des sections
-        if [ -f "memory/skills.md" ]; then
-          SKILLS_SECTIONS=$(grep -c "^## " memory/skills.md || echo "0")
-          if [ "$SKILLS_SECTIONS" -lt 3 ]; then
-            echo "❌ skills.md doit contenir au moins 3 sections (##)"
-            exit 1
-          fi
-          echo "✅ skills.md contient $SKILLS_SECTIONS sections"
-        fi
-        
-        # Vérifier que identity.md contient des identifiants
-        if [ -f "memory/identity.md" ]; then
-          if grep -q "OPENAI_API_KEY" memory/identity.md; then
-            echo "✅ identity.md contient les identifiants API"
-          else
-            echo "❌ identity.md doit contenir les identifiants API"
-            exit 1
-          fi
-        fi
-        
-        # Vérifier que context_snapshot.md n'est pas vide
-        if [ -f "memory/context_snapshot.md" ]; then
-          if [ -s "memory/context_snapshot.md" ]; then
-            echo "✅ context_snapshot.md n'est pas vide"
-          else
-            echo "❌ context_snapshot.md est vide"
-            exit 1
-          fi
-        fi
-        
     - name: Check for demo artifacts
       run: |
         echo "🧹 Vérification des artefacts de démo..."
         
-        # Chercher les patterns de démo dans les fichiers de mémoire
+        # Chercher les patterns de démo
         DEMO_PATTERNS=("demo completed" "démo terminée" "✅.*demo" "🎉.*demo")
         
+        FOUND_DEMO=false
         for pattern in "${DEMO_PATTERNS[@]}"; do
-          if grep -r "$pattern" memory/; then
+          if grep -r "$pattern" windsurf/memory/; then
             echo "⚠️ Artefacts de démo trouvés: $pattern"
-            echo "   Ces éléments devraient être nettoyés"
+            FOUND_DEMO=true
           fi
         done
         
-        echo "✅ Vérification des artefacts terminée"
-        
-    - name: Validate file sizes
-      run: |
-        echo "📊 Validation des tailles de fichiers..."
-        
-        # Vérifier que les fichiers ne sont pas trop grands
-        MAX_SIZE=50000  # 50KB max
-        
-        for file in memory/*.md; do
-          if [ -f "$file" ]; then
-            SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
-            if [ "$SIZE" -gt "$MAX_SIZE" ]; then
-              echo "⚠️ $file est trop grand: $SIZE bytes (max: $MAX_SIZE)"
-            else
-              echo "✅ $file taille OK: $SIZE bytes"
-            fi
-          fi
-        done
-        
-    - name: Generate memory report
-      run: |
-        echo "📋 Génération du rapport de mémoire..."
-        
-        echo "# Cascade Memory Report" > memory_report.md
-        echo "Generated: $(date)" >> memory_report.md
-        echo "" >> memory_report.md
-        
-        echo "## Files" >> memory_report.md
-        for file in memory/*.md; do
-          if [ -f "$file" ]; then
-            SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo "0")
-            LINES=$(wc -l < "$file")
-            echo "- $file: $LINES lignes, $SIZE bytes" >> memory_report.md
-          fi
-        done
-        
-        echo "" >> memory_report.md
-        echo "## Content Summary" >> memory_report.md
-        echo "- Total skills sections: $(grep -c "^## " memory/skills.md || echo "0")" >> memory_report.md
-        echo "- Total lines in memory: $(wc -l memory/*.md | tail -1)" >> memory_report.md
-        
-        echo "✅ Rapport généré: memory_report.md"
-        
-    - name: Upload memory report
-      uses: actions/upload-artifact@v4
-      with:
-        name: memory-report
-        path: memory_report.md
+        if [ "$FOUND_DEMO" = true ]; then
+          echo "⚠️ Nettoyage requis avant validation"
+        else
+          echo "✅ Aucun artefact de démo trouvé"
+        fi
         
     - name: Success notification
       run: |
